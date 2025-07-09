@@ -1,0 +1,17 @@
+{
+  "name": "comp-plays-server",
+  "version": "1.0.0",
+  "main": "src/app.ts",
+  "scripts": {
+    "start": "bun src/app.ts",
+    "dev": "bun run start --watch"
+  },
+  "dependencies": {
+    "bun": "1.2.18"
+  },
+  "devDependencies": {
+    "@types/bun": "1.2.18",
+    "typescript": "5.8.3"
+  },
+  "type": "module"
+}
