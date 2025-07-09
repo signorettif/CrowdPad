@@ -1,0 +1,1 @@
+export const INPUT_COOLDOWN = 5_000;

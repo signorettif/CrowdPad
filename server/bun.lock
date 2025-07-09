@@ -7,7 +7,7 @@
         "bun": "1.2.18",
       },
       "devDependencies": {
-        "@types/bun": "^1.2.18",
+        "@types/bun": "1.2.18",
         "typescript": "5.8.3",
       },
     },
