@@ -35,7 +35,8 @@ class GameController {
     }
 
     private initializeWebSocket(): void {
-        this.wsService = new WebSocketService(`ws://${window.location.host}/socket`);
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        this.wsService = new WebSocketService(`${protocol}//${window.location.host}/socket`);
         
         this.wsService.onOpen(() => {
             this.wsService.send({ type: 'join' });

@@ -4,7 +4,7 @@ import { WebSocketHandlers } from './utils/websockets/handlers.js';
 const wsHandlers = new WebSocketHandlers();
 
 const server = Bun.serve({
-    port: process.env.PORT || 3000,
+    port: process.env.PORT || 8080,
     async fetch(req, server) {
         const url = new URL(req.url);
 

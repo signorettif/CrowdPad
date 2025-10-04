@@ -1,0 +1,7 @@
+services:
+  crowdpad-server:
+    build: .
+    ports:
+      - 3000:8080
+    environment:
+      - WEBSOCKET_SECRET_KEY=secretkey
