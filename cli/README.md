@@ -1,18 +1,26 @@
-# cli
+## Setup
 
-To install dependencies:
+### Ubuntu (tested on `25.04`)
 
-```bash
-bun install
-```
+To run the application without requiring `sudo`, you need to grant your user permission to access the `uinput` device.
 
-To run:
+1.  **Add your user to the `input` group:**
+    ```bash
+    sudo usermod -aG input $USER
+    ```
 
-```bash
-bun run index.ts
-```
+2.  **Create a udev rule for `uinput`:**
+    ```bash
+    echo 'KERNEL=="uinput", MODE="0660", GROUP="input"' | sudo tee /etc/udev/rules.d/99-uinput.rules
+    ```
 
-This project was created using `bun init` in bun v1.2.18. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+3.  **Reload the udev rules:**
+    ```bash
+    sudo udevadm control --reload-rules
+    sudo udevadm trigger
+    ```
 
+4.  **Log out and log back in:**
+    For the group changes to take effect, you need to log out of your current session and log back in.
 
-Requires https://github.com/nikouu/mGBA-http 
+After following these steps, you can run the application without `sudo`.

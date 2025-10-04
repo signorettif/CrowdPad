@@ -9,11 +9,13 @@ description = "Create a virtual joypad and listens for commands coming from the 
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "python-uinput>=1.0.1",
+    "python-uinput==1.0.1",
+    "websockets==15.0.1",
+    "click==8.1.7",
 ]
 
 [project.scripts]
-start = "crowdpad_cli.main:main"
+start = "crowdpad_cli.main:cli"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
