@@ -1,1 +1,2 @@
-export const INPUT_COOLDOWN = 5_000;
+// allows sending up to 10 commands a second per each user
+export const INPUT_COOLDOWN = 100;

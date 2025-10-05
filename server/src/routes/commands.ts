@@ -1,8 +1,9 @@
 import { db } from '../db';
 import { JSONParse, JSONStringify } from 'json-with-bigint';
+import { withAdminAuth } from '../middleware/auth';
 
 export const commandRoutes = {
-  '/api/v1/commands': (req: Request) => {
+  '/api/v1/commands': withAdminAuth((req: Request) => {
     const url = new URL(req.url);
     const startTime = url.searchParams.get('startTime');
     const endTime = url.searchParams.get('endTime');
@@ -23,5 +24,5 @@ export const commandRoutes = {
       console.error('Error fetching commands:', error);
       return new Response('Internal Server Error', { status: 500 });
     }
-  },
+  }),
 };

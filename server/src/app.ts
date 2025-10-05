@@ -10,6 +10,16 @@ const server = Bun.serve({
   fetch(req, server) {
     const url = new URL(req.url);
     if (url.pathname === '/socket') {
+      const authHeader = req.headers.get("authorization");
+      if (!authHeader) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+  
+      const token = authHeader.split(" ")[1];
+      if (token !== process.env.ADMIN_KEY) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+
       if (server.upgrade(req)) {
         return;
       }
