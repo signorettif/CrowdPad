@@ -46,7 +46,7 @@ function App() {
     return (
         <div className="bg-gray-100 min-h-screen">
             <div className="container mx-auto p-4">
-                <div className="flex gap-6 h-screen">
+                <div className="flex flex-col lg:flex-row gap-6">
                     <Controls 
                         onAuthenticate={handleAuthenticate} 
                         authStatus={authStatus} 
