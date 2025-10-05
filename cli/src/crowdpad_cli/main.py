@@ -8,21 +8,19 @@ import websockets
 
 from crowdpad_cli.device import CrowdPadController
 
-SERVER_URL = "wss://crowdpad-server.fly.dev/socket"
-# SERVER_URL = "ws://localhost:3000/socket"
-SECRET_KEY = "supersecretkey"
-
+WEBSOCKET_URI = "ws://localhost:3000/socket"
+WEBSOCKET_SECRET = "supersecretkey"
 
 async def listen_async(device: uinput.Device) -> None:
     """Listens for websocket events and controls the virtual device."""
-    print(f"Connecting to {SERVER_URL}")
+    print(f"Connecting to {WEBSOCKET_URI}")
     try:
-        async with websockets.connect(SERVER_URL) as websocket:
+        async with websockets.connect(WEBSOCKET_URI) as websocket:
             print("Connected to server")
 
             # Authenticate
             await websocket.send(
-                json.dumps({"type": "auth", "data": {"secretKey": SECRET_KEY}})
+                json.dumps({"type": "auth", "data": {"secretKey": WEBSOCKET_SECRET}})
             )
 
             # Join
@@ -37,14 +35,14 @@ async def listen_async(device: uinput.Device) -> None:
                             continue
 
                         print(f"Received input: {input_key}")
-                        
+
 
                 except json.JSONDecodeError:
                     print(f"Could not decode message: {message}")
                 except Exception as e:
                     print(f"An error occurred: {e}")
     except (websockets.exceptions.ConnectionClosedError, ConnectionRefusedError) as e:
-        print(f"Connection to {SERVER_URL} failed: {e}")
+        print(f"Connection to {WEBSOCKET_URI} failed: {e}")
         print("Retrying in 5 seconds...")
         await asyncio.sleep(5)
         await listen_async(device)
@@ -85,9 +83,9 @@ def manual(delay):
 
             if delay > 0:
                 time.sleep(delay / 1000)
-            
+
             controller.press_button(input_key)
-            
+
 
     except Exception as e:
         print(f"Failed to create device: {e}")
