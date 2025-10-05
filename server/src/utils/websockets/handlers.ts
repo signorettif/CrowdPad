@@ -1,3 +1,4 @@
+import { db } from '../../db/index.js';
 import { INPUT_COOLDOWN } from '../../constants.js';
 
 import type { GameInput, ClientMessage, ServerMessage } from '../../types/shared.js';
@@ -5,7 +6,6 @@ import type { GameInput, ClientMessage, ServerMessage } from '../../types/shared
 export class WebSocketHandlers {
     private connectedUsers = new Set<any>();
     private authenticatedUsers = new Set<any>();
-    private messages: GameInput[] = [];
     private userLastInputTime = new Map<string, number>();
 
     handleMessage(ws: any, message: string): void {
@@ -102,8 +102,16 @@ export class WebSocketHandlers {
             input: clientMessage.data.input,
             timestamp: currentTime
         };
-        
-        this.messages.push(gameInput);
+
+        // Save to database
+        try {
+            db.run(
+                'INSERT INTO commands (timestamp, username, command) VALUES (?, ?, ?)',
+                [gameInput.timestamp, gameInput.username, gameInput.input]
+            );
+        } catch (error) {
+            console.error('Error saving to database:', error);
+        }
         
         // Broadcast to all connected users (including sender)
         const inputMessage: ServerMessage = {
@@ -120,12 +128,17 @@ export class WebSocketHandlers {
             console.log('Get messages rejected: User not authenticated');
             return;
         }
-        
-        const messagesResponse: ServerMessage = {
-            type: 'messages',
-            data: this.messages
-        };
-        this.sendMessage(ws, messagesResponse);
+
+        try {
+            const messages = db.query('SELECT timestamp, username, command as input FROM commands ORDER BY timestamp DESC').all();
+            const messagesResponse: ServerMessage = {
+                type: 'messages',
+                data: messages as GameInput[],
+            };
+            this.sendMessage(ws, messagesResponse);
+        } catch (error) {
+            console.error('Error fetching messages from database:', error);
+        }
     }
 
     private handleJoinMessage(ws: any): void {
