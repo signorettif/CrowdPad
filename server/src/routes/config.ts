@@ -1,5 +1,6 @@
 import { db } from '../db';
 import { withAdminAuth } from '../middleware/auth';
+import { bustConfigCache } from '../utils/config';
 
 export const configRoutes = {
   '/api/v1/config': withAdminAuth((req: Request) => {
@@ -29,6 +30,7 @@ export const configRoutes = {
           key,
           value
         );
+        bustConfigCache(key);
         return new Response(JSON.stringify({ key, value }), {
           headers: { 'Content-Type': 'application/json' },
         });

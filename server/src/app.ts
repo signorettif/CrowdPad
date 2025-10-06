@@ -1,4 +1,5 @@
 import './db/schema.ts';
+import { withCors } from './middleware/cors.js';
 import { commandRoutes } from './routes/commands.js';
 import { configRoutes } from './routes/config.js';
 import { webSocketHandler } from './websockets.js';
@@ -9,7 +10,7 @@ const server = Bun.serve({
     ...commandRoutes,
     ...configRoutes,
   },
-  fetch(req, server) {
+  fetch: (req, server) => {
     const url = new URL(req.url);
     if (url.pathname === '/health') {
       return new Response('healthy', { status: 200 });
