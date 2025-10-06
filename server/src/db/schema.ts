@@ -18,6 +18,3 @@ db.run(`
 
 // Seed config with some sensible defaults
 db.run(`INSERT OR IGNORE INTO config (key, value) VALUES ('cooldown', '100')`);
-db.run(
-  `INSERT OR IGNORE INTO config (key, value) VALUES ('pollingInterval', '100')`
-);
