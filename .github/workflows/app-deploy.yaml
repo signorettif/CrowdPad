@@ -9,6 +9,7 @@ on:
 
 env:
   VITE_WEBSOCKET_URL: ${{ secrets.VITE_WEBSOCKET_URL }}
+  VITE_SERVER_URL: ${{ secrets.VITE_SERVER_URL }}
 
 permissions:
   contents: read

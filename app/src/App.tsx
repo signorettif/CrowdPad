@@ -11,8 +11,6 @@ function App() {
   const { chatMessages, onlineCount, isAuthenticated, authStatus, send } =
     useWebSocket();
 
-  console.log(`the base url is ${import.meta.env.VITE_SERVER_URL}`);
-
   useEffect(() => {
     const fetchConfig = async () => {
       try {
