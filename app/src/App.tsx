@@ -11,6 +11,8 @@ function App() {
   const { chatMessages, onlineCount, isAuthenticated, authStatus, send } =
     useWebSocket();
 
+  console.log(`the base url is ${import.meta.env.VITE_SERVER_URL}`);
+
   useEffect(() => {
     const fetchConfig = async () => {
       try {
@@ -18,7 +20,9 @@ function App() {
           `${import.meta.env.VITE_SERVER_URL}/config`
         );
         const data = await response.json();
-        const cooldownValue = data.find((item: any) => item.key === 'cooldown')?.value;
+        const cooldownValue = data.find(
+          (item: any) => item.key === 'cooldown'
+        )?.value;
         if (cooldownValue) {
           setCooldown(parseInt(cooldownValue, 10));
         }
