@@ -1,9 +1,10 @@
 import { db } from '../db';
 import { withAdminAuth } from '../middleware/auth';
+import { withCors } from '../middleware/cors';
 import { bustConfigCache } from '../utils/config';
 
 export const configRoutes = {
-  '/api/v1/config': withAdminAuth((req: Request) => {
+  '/api/v1/config': withCors((req: Request) => {
     if (req.method === 'GET') {
       try {
         const configs = db.query('SELECT * FROM config').all();
