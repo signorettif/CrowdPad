@@ -28,6 +28,9 @@ FROM base AS release
 COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /usr/src/app .
 
+# Change ownership of all files to bun user
+RUN chown -R bun:bun /usr/src/app
+
 # run the app
 USER bun
 EXPOSE 8080/tcp
