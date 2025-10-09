@@ -1,17 +1,20 @@
 import os
-import time
+import json
+import asyncio
 from datetime import datetime, timedelta
+from collections import deque
 
 import click
-import requests
+import websockets
 from dotenv import load_dotenv
 
 from crowdpad_cli.device import CrowdPadController
 from crowdpad_cli.models.game_input import GameInput
 
+
 load_dotenv()
 
-# SERVER_URI = "http://localhost:3000"
+# SERVER_URI = "ws://localhost:3000/socket"
 SERVER_URI = os.environ.get("SERVER_URI")
 SERVER_SECRET = os.environ.get("SERVER_SECRET")
 
@@ -19,74 +22,144 @@ def normalize_datetime(dt: datetime):
     return int(dt.timestamp() * 1000)
 
 
-def poll_commands(
-    device: CrowdPadController, start_time: datetime, aggregation_interval: int, polling_interval: int, lag: int
-) -> None:
-    """Polls the server for commands and executes them."""
+class InputAggregator:
+    def __init__(self, device: CrowdPadController, aggregation_interval: int):
+        self.device = device
+        self.aggregation_interval = aggregation_interval
+        self.inputs = deque()
+        self.running = True
+        self.window_start = None
+
+    def add_input(self, username: str, input_command: str, timestamp: int):
+        """Add an input to the buffer."""
+        self.inputs.append({
+            'username': username,
+            'command': input_command,
+            'timestamp': timestamp
+        })
+
+    async def process_inputs(self):
+        """Process inputs in aggregation intervals."""
+        while self.running:
+            await asyncio.sleep(0.1)
+
+            if not self.inputs:
+                continue
+
+            # Get current time window
+            window_start = datetime.fromtimestamp(self.inputs[0]['timestamp'] / 1000)
+            window_end = window_start + timedelta(milliseconds=self.aggregation_interval)
+
+            # Collect inputs within the window
+            window_inputs = []
+            remaining_inputs = deque()
+
+            for inp in self.inputs:
+                if inp['timestamp'] < normalize_datetime(window_end):
+                    window_inputs.append(inp)
+                else:
+                    remaining_inputs.append(inp)
+
+            self.inputs = remaining_inputs
+            self.window_start = window_end
+
+            if window_inputs:
+                # Aggregate by counting frequency
+                frequency = {}
+                for inp in window_inputs:
+                    cmd = inp['command']
+                    frequency[cmd] = frequency.get(cmd, 0) + 1
+
+                # Pick most popular command
+                most_popular_command = max(frequency, key=frequency.get)
+
+                # Print report
+                frequency_str = ", ".join([f"{c}: {count}" for c, count in frequency.items()])
+                print(f"--- Command Report {normalize_datetime(window_start)} - {normalize_datetime(window_end)} ---")
+                print(f"Gotten: {frequency_str}")
+                print(f"Picked: {most_popular_command}")
+                print("----------------------")
+
+                # Execute command
+                self.device.press_button(most_popular_command)
+            else:
+                print(f"No inputs in {normalize_datetime(window_start)} - {normalize_datetime(window_end)} ---")
+
+
+    def stop(self):
+        """Stop processing."""
+        self.running = False
+
+
+async def listen_websocket(device: CrowdPadController, aggregation_interval: int) -> None:
+    """Connect to WebSocket server and listen for input events."""
     if not SERVER_SECRET:
         print("SERVER_SECRET environment variable not set.")
         return
 
-    url = f"{SERVER_URI}/api/v1/commands"
-    print(f"Polling for commands from {url} every {polling_interval}ms with a lag of {lag}ms")
-    last_timestamp = start_time - timedelta(milliseconds=lag)
+    aggregator = InputAggregator(device, aggregation_interval)
 
-    while True:
-        end_time = last_timestamp + timedelta(milliseconds=polling_interval)
-        print(f"Getting commands between {normalize_datetime(last_timestamp)} - {normalize_datetime(end_time)} ({lag}ms delay)")
-        try:
-            response = requests.get(
-                url,
-                params={
-                    "startTime": normalize_datetime(last_timestamp),
-                    "endTime": normalize_datetime(end_time),
-                },
-                headers={"Authorization": f"Bearer {SERVER_SECRET}"},
-            )
+    print(f"Connecting to WebSocket server at {SERVER_URI}...")
+    print(f"Aggregation interval: {aggregation_interval}ms")
 
-            if response.status_code == 200:
-                commands = [GameInput.model_validate(c) for c in response.json()]
-                if commands:
-                    segment_start_time = last_timestamp
-                    while segment_start_time < end_time:
-                        segment_end_time = segment_start_time + timedelta(milliseconds=aggregation_interval)
-                        formatted_degment_start_time = normalize_datetime(segment_start_time)
-                        formatted_degment_end_time = normalize_datetime(segment_end_time)
-                        segment_commands = [c for c in commands if formatted_degment_start_time <= c.timestamp < formatted_degment_end_time]
+    try:
+        async with websockets.connect(SERVER_URI) as websocket:
+            print(f"Connected to WebSocket server at {SERVER_URI}")
 
-                        if segment_commands:
-                            # We got inputs in the interval
-                            frequency = {}
-                            for c in segment_commands:
-                                frequency[c.command] = frequency.get(c.command, 0) + 1
+            # Send authentication message
+            auth_message = {
+                'type': 'auth',
+                'data': {
+                    'secretKey': SERVER_SECRET
+                }
+            }
+            await websocket.send(json.dumps(auth_message))
+            print("Sent authentication request")
 
-                            most_popular_command = max(frequency, key=frequency.get)
+            # Start aggregation task
+            aggregation_task = asyncio.create_task(aggregator.process_inputs())
 
-                            frequency_str = ""
-                            for c, count in frequency.items():
-                                frequency_str+=f"{c}: {count}, "
-                            print(f"--- Command Report {formatted_degment_start_time} - {formatted_degment_end_time} ---")
-                            print(f"Gotten: {frequency_str.strip()}")
-                            print(f"Picked: {most_popular_command}")
-                            print("----------------------")
+            try:
+                # Listen for messages
+                async for message in websocket:
+                    try:
+                        data = json.loads(message)
+                        msg_type = data.get('type')
 
-                            device.press_button(most_popular_command)
-                        else:
-                            print(f"No commands between {formatted_degment_start_time} - {formatted_degment_end_time}")
+                        if msg_type == 'auth_status':
+                            authenticated = data.get('data', {}).get('authenticated', False)
+                            if authenticated:
+                                print("Successfully authenticated to WebSocket server")
+                            else:
+                                print("Authentication failed")
+                                break
 
-                        segment_start_time = segment_end_time
+                        elif msg_type == 'input':
+                            # Receive input from server
+                            input_data = data.get('data', {})
+                            username = input_data.get('username')
+                            input_command = input_data.get('input')
+                            timestamp = input_data.get('timestamp')
 
-                last_timestamp = end_time
-            elif response.status_code == 401:
-                print("Unauthorized. Please check your secret key.")
-                break
-            else:
-                print(f"Error polling commands: {response.status_code} {response.text}")
+                            if username and input_command and timestamp:
+                                aggregator.add_input(username, input_command, timestamp)
 
-        except requests.exceptions.RequestException as e:
-            print(f"Connection to {SERVER_URI} failed: {e}")
+                    except json.JSONDecodeError as e:
+                        print(f"Failed to parse message: {e}")
 
-        time.sleep(polling_interval / 1000)
+            finally:
+                # Clean up aggregation task
+                aggregator.stop()
+                aggregation_task.cancel()
+                try:
+                    await aggregation_task
+                except asyncio.CancelledError:
+                    pass
+
+    except websockets.exceptions.WebSocketException as e:
+        print(f"WebSocket error: {e}")
+    except Exception as e:
+        print(f"Connection error: {e}")
 
 
 @click.group()
@@ -97,40 +170,19 @@ def cli():
 
 @cli.command()
 @click.option(
-    "--startFromTimestamp",
-    default=None,
-    help="The start time to poll commands from (YYYY-MM-DDTHH:MM:SS or epoch time in milliseconds). Defaults to now.",
-)
-@click.option(
     "--aggregationInterval",
     default=100,
     help="The interval in milliseconds to aggregate commands.",
 )
-@click.option(
-    "--pollingInterval",
-    default=2000,
-    help="How frequently to poll commands from server.",
-)
-@click.option(
-    "--lag",
-    default=2000,
-    help="Lag for allowing write ops to the db.",
-)
-def listen(startfromtimestamp, aggregationinterval, pollinginterval, lag):
-    """Listen for inputs from the server."""
+def listen(aggregationinterval):
+    """Listen for inputs from the WebSocket server."""
     try:
         controller = CrowdPadController()
         print("GBA joystick created. Waiting for inputs...")
 
-        if startfromtimestamp:
-            if startfromtimestamp.isdigit():
-                start_time = datetime.fromtimestamp(int(startfromtimestamp) / 1000)
-            else:
-                start_time = datetime.fromisoformat(startfromtimestamp)
-        else:
-            start_time = datetime.now()
-
-        poll_commands(controller, start_time, aggregation_interval=aggregationinterval, polling_interval=pollinginterval, lag = lag)
+        asyncio.run(listen_websocket(controller, aggregation_interval=aggregationinterval))
+    except KeyboardInterrupt:
+        print("\nShutting down...")
     except Exception as e:
         print(f"Failed to create device: {e}")
         print("Please check your permissions.")
@@ -151,6 +203,7 @@ def manual(delay):
                 break
 
             if delay > 0:
+                import time
                 time.sleep(delay / 1000)
 
             controller.press_button(input_key)
