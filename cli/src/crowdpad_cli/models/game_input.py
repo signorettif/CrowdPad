@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 
 class GameInput(BaseModel):
+    id: int
     username: str
-    input: str
+    command: str
     timestamp: int
