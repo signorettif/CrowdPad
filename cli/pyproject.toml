@@ -9,10 +9,11 @@ description = "Create a virtual joypad and listens for commands from a remote se
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "python-uinput==1.0.1",
     "click==8.3.0",
-    "requests==2.32.5",
     "pydantic==2.12.0",
+    "python-dotenv==1.1.1",
+    "python-uinput==1.0.1",
+    "requests==2.32.5",
 ]
 
 [project.scripts]

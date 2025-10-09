@@ -4,11 +4,14 @@ from datetime import datetime, timedelta
 
 import click
 import requests
+from dotenv import load_dotenv
 
 from crowdpad_cli.device import CrowdPadController
 from crowdpad_cli.models.game_input import GameInput
 
-SERVER_URI = os.environ.get("SERVER_URI", "http://localhost:3000")
+load_dotenv()
+
+SERVER_URI = os.environ.get("SERVER_URI")
 SERVER_SECRET = os.environ.get("SERVER_SECRET")
 
 
@@ -20,14 +23,15 @@ def poll_commands(
         print("SERVER_SECRET environment variable not set.")
         return
 
-    print(f"Polling for commands from {SERVER_URI}")
+    url = f"{SERVER_URI}/commands"
+    print(f"Polling for commands from {url}")
     last_timestamp = start_time
 
     while True:
         try:
             end_time = last_timestamp + timedelta(milliseconds=interval)
             response = requests.get(
-                f"{SERVER_URI}/api/v1/commands",
+                url,
                 params={
                     "startTime": int(last_timestamp.timestamp() * 1000),
                     "endTime": int(end_time.timestamp() * 1000),
@@ -44,19 +48,18 @@ def poll_commands(
 
                     most_popular_command = max(frequency, key=frequency.get)
 
-                    if most_popular_command > 0:
-                        # We got inputs in the interval
-                        frequency_str = ""
-                        for command, count in frequency.items():
-                            frequency_str+=f"{command}: {count}, "
-                        print(f"--- Command Report {last_timestamp.isoformat()} - {end_time.isoformat()} ---")
-                        print(f"Gotten: {frequency_str.strip()}")
-                        print(f"Picked: {most_popular_command}")
-                        print("----------------------")
+                    # We got inputs in the interval
+                    frequency_str = ""
+                    for command, count in frequency.items():
+                        frequency_str+=f"{command}: {count}, "
+                    print(f"--- Command Report {last_timestamp.isoformat()} - {end_time.isoformat()} ---")
+                    print(f"Gotten: {frequency_str.strip()}")
+                    print(f"Picked: {most_popular_command}")
+                    print("----------------------")
 
-                        device.press_button(most_popular_command)
-                    else:
-                        print(f"No commands between {last_timestamp.isoformat()} - {end_time.isoformat()}")
+                    device.press_button(most_popular_command)
+                else:
+                    print(f"No commands between {last_timestamp.isoformat()} - {end_time.isoformat()}")
 
                 last_timestamp = end_time
             elif response.status_code == 401:
