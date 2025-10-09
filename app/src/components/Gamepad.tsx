@@ -5,7 +5,28 @@ interface GamepadProps {
 
 export const Gamepad = ({ onGameInput, disabled }: GamepadProps) => {
     return (
-        <div className="bg-purple-200 rounded-lg p-8 max-w-md mx-auto">
+        <div
+            className="bg-purple-200 rounded-lg p-8 max-w-md mx-auto"
+            onKeyDown={(e) => {
+                if (e.code === "ArrowUp") {
+                    onGameInput("up");
+                } else if (e.code === "ArrowDown") {
+                    onGameInput("down");
+                } else if (e.code === "ArrowLeft") {
+                    onGameInput("left");
+                } else if (e.code === "ArrowRight") {
+                    onGameInput("right");
+                } else if (e.code === "KeyA") {
+                    onGameInput("a");
+                } else if (e.code === "KeyB") {
+                    onGameInput("b");
+                } else if (e.code === "Enter") {
+                    onGameInput("start");
+                } else if (e.code === "Space") {
+                    onGameInput("select");
+                }
+            }}
+        >
             <div className="flex justify-between items-center">
                 <div className="relative">
                     <div className="grid grid-cols-3 gap-1 w-24 h-24">
