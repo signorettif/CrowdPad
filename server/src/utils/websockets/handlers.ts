@@ -113,8 +113,8 @@ export class WebSocketHandlers {
     // Save to database
     try {
       db.run(
-        'INSERT INTO commands (timestamp, username, command) VALUES (?, ?, ?)',
-        [gameInput.timestamp, gameInput.username, gameInput.input]
+        'INSERT INTO commands (timestamp, username, command) VALUES (unixepoch("now"), ?, ?)',
+        [gameInput.username, gameInput.input]
       );
     } catch (error) {
       console.error('Error saving to database:', error);
