@@ -11,11 +11,12 @@ from crowdpad_cli.models.game_input import GameInput
 
 load_dotenv()
 
+# SERVER_URI = "http://localhost:3000"
 SERVER_URI = os.environ.get("SERVER_URI")
 SERVER_SECRET = os.environ.get("SERVER_SECRET")
 
 def normalize_datetime(dt: datetime):
-    return int(dt.timestamp())
+    return int(dt.timestamp() * 1000)
 
 
 def poll_commands(
@@ -26,13 +27,13 @@ def poll_commands(
         print("SERVER_SECRET environment variable not set.")
         return
 
-    url = f"{SERVER_URI}/commands"
+    url = f"{SERVER_URI}/api/v1/commands"
     print(f"Polling for commands from {url} every {polling_interval}ms with a lag of {lag}ms")
     last_timestamp = start_time - timedelta(milliseconds=lag)
 
     while True:
         end_time = last_timestamp + timedelta(milliseconds=polling_interval)
-        print(f"Getting commands between {normalize_datetime(last_timestamp)} - {normalize_datetime(end_time)}")
+        print(f"Getting commands between {normalize_datetime(last_timestamp)} - {normalize_datetime(end_time)} ({lag}ms delay)")
         try:
             response = requests.get(
                 url,
@@ -112,7 +113,7 @@ def cli():
 )
 @click.option(
     "--lag",
-    default=1000,
+    default=2000,
     help="Lag for allowing write ops to the db.",
 )
 def listen(startfromtimestamp, aggregationinterval, pollinginterval, lag):
