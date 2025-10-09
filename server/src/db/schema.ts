@@ -1,5 +1,12 @@
 import { db } from '.';
 
+// Enable WAL mode and optimize settings
+db.exec('PRAGMA journal_mode = WAL;');
+db.exec('PRAGMA synchronous = NORMAL;');
+db.exec('PRAGMA cache_size = 1000000000;');
+db.exec('PRAGMA temp_store = memory;');
+
+// Migrations
 db.run(`
   CREATE TABLE IF NOT EXISTS commands (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

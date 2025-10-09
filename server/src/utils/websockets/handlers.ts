@@ -1,3 +1,5 @@
+import { Statement } from 'bun:sqlite';
+
 import { db } from '../../db/index.js';
 import { getInputCommanddown } from '../../constants.js';
 
@@ -11,6 +13,15 @@ export class WebSocketHandlers {
   private connectedUsers = new Set<any>();
   private authenticatedUsers = new Set<any>();
   private userLastInputTime = new Map<string, number>();
+
+  private insertStmt: Statement; // Add prepared statement
+
+  constructor() {
+    // Initialize prepared statement once
+    this.insertStmt = db.prepare(
+      'INSERT INTO commands (timestamp, username, command) VALUES (?, ?, ?)'
+    );
+  }
 
   handleMessage(ws: any, message: string): void {
     try {
@@ -104,18 +115,9 @@ export class WebSocketHandlers {
     // Update last input time
     this.userLastInputTime.set(username, currentTime);
 
-    const gameInput: GameInput = {
-      username: username,
-      input: clientMessage.data.input,
-      timestamp: currentTime,
-    };
-
     // Save to database
     try {
-      db.run(
-        'INSERT INTO commands (timestamp, username, command) VALUES (unixepoch("now"), ?, ?)',
-        [gameInput.username, gameInput.input]
-      );
+      this.insertStmt.run(currentTime, username, clientMessage.data.input);
     } catch (error) {
       console.error('Error saving to database:', error);
     }
@@ -123,7 +125,11 @@ export class WebSocketHandlers {
     // Broadcast to all connected users (including sender)
     const inputMessage: ServerMessage = {
       type: 'input',
-      data: gameInput,
+      data: {
+        username: username,
+        input: clientMessage.data.input,
+        timestamp: currentTime,
+      },
     };
 
     this.broadcastMessage(inputMessage);

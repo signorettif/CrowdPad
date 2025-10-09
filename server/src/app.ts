@@ -1,5 +1,5 @@
 import './db/schema.ts';
-import { withCors } from './middleware/cors.js';
+
 import { commandRoutes } from './routes/commands.js';
 import { configRoutes } from './routes/config.js';
 import { webSocketHandler } from './websockets.js';
