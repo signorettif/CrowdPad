@@ -5,17 +5,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "crowdpad-cli"
 version = "0.1.0"
-description = "Create a virtual joypad and listens for commands coming from the external websocket"
+description = "Create a virtual joypad and listens for commands from a remote server."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "python-uinput==1.0.1",
-    "websockets==15.0.1",
-    "click==8.1.7",
+    "click==8.3.0",
+    "requests==2.32.5",
+    "pydantic==2.12.0",
 ]
 
 [project.scripts]
 start = "crowdpad_cli.main:cli"
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }

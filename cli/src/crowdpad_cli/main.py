@@ -1,51 +1,74 @@
-import asyncio
-import json
+import os
 import time
+from datetime import datetime, timedelta
 
 import click
-import uinput
-import websockets
+import requests
 
 from crowdpad_cli.device import CrowdPadController
+from crowdpad_cli.models.game_input import GameInput
 
-WEBSOCKET_URI = "ws://localhost:3000/socket"
-WEBSOCKET_SECRET = "supersecretkey"
+SERVER_URI = os.environ.get("SERVER_URI", "http://localhost:3000")
+SERVER_SECRET = os.environ.get("SERVER_SECRET")
 
-async def listen_async(device: uinput.Device) -> None:
-    """Listens for websocket events and controls the virtual device."""
-    print(f"Connecting to {WEBSOCKET_URI}")
-    try:
-        async with websockets.connect(WEBSOCKET_URI) as websocket:
-            print("Connected to server")
 
-            # Authenticate
-            await websocket.send(
-                json.dumps({"type": "auth", "data": {"secretKey": WEBSOCKET_SECRET}})
+def poll_commands(
+    device: CrowdPadController, start_time: datetime, interval: int
+) -> None:
+    """Polls the server for commands and executes them."""
+    if not SERVER_SECRET:
+        print("SERVER_SECRET environment variable not set.")
+        return
+
+    print(f"Polling for commands from {SERVER_URI}")
+    last_timestamp = start_time
+
+    while True:
+        try:
+            end_time = last_timestamp + timedelta(milliseconds=interval)
+            response = requests.get(
+                f"{SERVER_URI}/api/v1/commands",
+                params={
+                    "startTime": int(last_timestamp.timestamp() * 1000),
+                    "endTime": int(end_time.timestamp() * 1000),
+                },
+                headers={"Authorization": f"Bearer {SERVER_SECRET}"},
             )
 
-            # Join
-            await websocket.send(json.dumps({"type": "join"}))
+            if response.status_code == 200:
+                commands = [GameInput.model_validate(c) for c in response.json()]
+                if commands:
+                    frequency = {}
+                    for command in commands:
+                        frequency[command.input] = frequency.get(command.input, 0) + 1
 
-            async for message in websocket:
-                try:
-                    data = json.loads(message)
-                    if data.get("type") == "input":
-                        input_key = data.get("data", {}).get("input")
-                        if not input_key:
-                            continue
+                    most_popular_command = max(frequency, key=frequency.get)
 
-                        print(f"Received input: {input_key}")
+                    if most_popular_command > 0:
+                        # We got inputs in the interval
+                        frequency_str = ""
+                        for command, count in frequency.items():
+                            frequency_str+=f"{command}: {count}, "
+                        print(f"--- Command Report {last_timestamp.isoformat()} - {end_time.isoformat()} ---")
+                        print(f"Gotten: {frequency_str.strip()}")
+                        print(f"Picked: {most_popular_command}")
+                        print("----------------------")
 
+                        device.press_button(most_popular_command)
+                    else:
+                        print(f"No commands between {last_timestamp.isoformat()} - {end_time.isoformat()}")
 
-                except json.JSONDecodeError:
-                    print(f"Could not decode message: {message}")
-                except Exception as e:
-                    print(f"An error occurred: {e}")
-    except (websockets.exceptions.ConnectionClosedError, ConnectionRefusedError) as e:
-        print(f"Connection to {WEBSOCKET_URI} failed: {e}")
-        print("Retrying in 5 seconds...")
-        await asyncio.sleep(5)
-        await listen_async(device)
+                last_timestamp = end_time
+            elif response.status_code == 401:
+                print("Unauthorized. Please check your secret key.")
+                break
+            else:
+                print(f"Error polling commands: {response.status_code} {response.text}")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Connection to {SERVER_URI} failed: {e}")
+
+        time.sleep(interval / 1000)
 
 
 @click.group()
@@ -55,12 +78,31 @@ def cli():
 
 
 @cli.command()
-def listen():
-    """Listen for inputs from the websocket server."""
+@click.option(
+    "--startFromTimestamp",
+    default=None,
+    help="The start time to poll commands from (YYYY-MM-DDTHH:MM:SS or epoch time in milliseconds). Defaults to now.",
+)
+@click.option(
+    "--aggregationInterval",
+    default=100,
+    help="The interval in milliseconds to aggregate commands.",
+)
+def listen(startfromtimestamp, aggregationinterval):
+    """Listen for inputs from the server."""
     try:
         controller = CrowdPadController()
         print("GBA joystick created. Waiting for inputs...")
-        asyncio.run(listen_async(controller.device))
+
+        if startfromtimestamp:
+            if startfromtimestamp.isdigit():
+                start_time = datetime.fromtimestamp(int(startfromtimestamp) / 1000)
+            else:
+                start_time = datetime.fromisoformat(startfromtimestamp)
+        else:
+            start_time = datetime.now()
+
+        poll_commands(controller, start_time, aggregationinterval)
     except Exception as e:
         print(f"Failed to create device: {e}")
         print("Please check your permissions.")
@@ -73,7 +115,6 @@ def manual(delay):
     try:
         controller = CrowdPadController()
         print("GBA joystick created. Ready for manual input.")
-        # print("Available buttons: ", ", ".join(controller.get_available_buttons()))
         print("Type 'exit' to quit.")
 
         while True:
@@ -85,7 +126,6 @@ def manual(delay):
                 time.sleep(delay / 1000)
 
             controller.press_button(input_key)
-
 
     except Exception as e:
         print(f"Failed to create device: {e}")
