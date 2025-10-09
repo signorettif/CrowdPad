@@ -110,6 +110,9 @@ export class WebSocketHandlers {
     };
 
     this.broadcastMessage(inputMessage);
+    console.log(
+      `timestamp: ${currentTime}, user: ${username}, input: ${clientMessage.data.input}`
+    );
   }
 
   private handleJoinMessage(ws: any): void {
