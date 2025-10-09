@@ -9,18 +9,26 @@ export const commandRoutes = {
     withAdminAuth((req: Request) => {
       const url = new URL(req.url);
       const startTime = url.searchParams.get('startTime');
-      const endTime = url.searchParams.get('endTime');
 
-      if (!startTime || !endTime) {
-        return new Response('Missing startTime or endTime', { status: 400 });
+      if (!startTime) {
+        return new Response('Missing startTime', { status: 400 });
       }
 
       try {
-        const commands = db
-          .query(
-            'SELECT * FROM commands WHERE timestamp >= ? AND timestamp <= ?'
-          )
-          .all(Number(startTime), Number(endTime));
+        let commands;
+        if (url.searchParams.has('endTime')) {
+          const endTime = url.searchParams.get('endTime');
+
+          commands = db
+            .query(
+              'SELECT * FROM commands WHERE timestamp >= ? AND timestamp <= ?'
+            )
+            .all(Number(startTime), Number(endTime));
+        } else {
+          commands = db
+            .query('SELECT * FROM commands WHERE timestamp >= ?')
+            .all(Number(startTime));
+        }
 
         return new Response(JSONStringify(commands), {
           headers: { 'Content-Type': 'application/json' },
