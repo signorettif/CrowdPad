@@ -21,6 +21,9 @@ export class WebSocketHandlers {
         case 'join':
           this.handleJoinMessage(ws);
           break;
+        case 'move_executed':
+          this.handleMoveExecutedMessage(ws, clientMessage);
+          break;
         default:
           console.warn('Unknown message type:', clientMessage.type);
       }
@@ -121,6 +124,35 @@ export class WebSocketHandlers {
       data: { count: this.connectedUsers.size },
     };
     this.sendMessage(ws, userCountMessage);
+  }
+
+  private handleMoveExecutedMessage(
+    ws: any,
+    clientMessage: ClientMessage
+  ): void {
+    // Check if user is authenticated (CLI should be authenticated)
+    if (!this.authenticatedUsers.has(ws)) {
+      console.log('Move executed message rejected: User not authenticated');
+      return;
+    }
+
+    // Broadcast the move execution to all connected clients
+    const moveExecutedMessage: ServerMessage = {
+      type: 'move_executed',
+      data: {
+        chosenCommand: clientMessage.data?.chosenCommand,
+        voteCounts: clientMessage.data?.voteCounts,
+        windowStart: clientMessage.data?.windowStart,
+        windowEnd: clientMessage.data?.windowEnd,
+        timestamp: clientMessage.data?.timestamp,
+      },
+    };
+
+    this.broadcastMessage(moveExecutedMessage);
+    console.log(
+      `Move executed broadcast: ${clientMessage.data?.chosenCommand} with votes:`,
+      clientMessage.data?.voteCounts
+    );
   }
 
   private broadcastUserCount(): void {

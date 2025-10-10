@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { getSocketUri } from '../utils/socket';
-import type { GameInput, ServerMessage } from '../types';
+import { useState, useEffect, useRef } from "react";
+import { getSocketUri } from "../utils/socket";
+import type { GameInput, ServerMessage } from "../types";
 
 // --- WebSocket Service (simplified from server/src/utils/websockets/service.ts) ---
 class WebSocketService {
@@ -20,7 +20,7 @@ class WebSocketService {
         const message = JSON.parse(event.data);
         callback(message);
       } catch (error) {
-        console.error('Failed to parse WebSocket message:', error);
+        console.error("Failed to parse WebSocket message:", error);
       }
     };
   }
@@ -40,9 +40,10 @@ export const useWebSocket = () => {
   const [chatMessages, setChatMessages] = useState<GameInput[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [lastMoveExecuted, setLastMoveExecuted] = useState<any>(null);
   const [authStatus, setAuthStatus] = useState({
-    message: '',
-    className: 'mt-2 text-sm text-center',
+    message: "",
+    className: "mt-2 text-sm text-center",
   });
   const wsServiceRef = useRef<WebSocketService | null>(null);
 
@@ -51,35 +52,56 @@ export const useWebSocket = () => {
     wsServiceRef.current = ws;
 
     ws.onOpen(() => {
-      ws.send({ type: 'join' });
+      ws.send({ type: "join" });
     });
 
     ws.onMessage((message: ServerMessage) => {
       switch (message.type) {
-        case 'auth_status':
+        case "auth_status":
           if (message.data.authenticated) {
             setIsAuthenticated(true);
             setAuthStatus({
-              message: 'Authenticated successfully!',
-              className: 'mt-2 text-sm text-center text-green-600',
+              message: "Authenticated successfully!",
+              className: "mt-2 text-sm text-center text-green-600",
             });
           } else {
             setIsAuthenticated(false);
             setAuthStatus({
-              message: 'Authentication failed. Please check your secret key.',
-              className: 'mt-2 text-sm text-center text-red-600',
+              message: "Authentication failed. Please check your secret key.",
+              className: "mt-2 text-sm text-center text-red-600",
             });
           }
           break;
-        case 'input':
+        case "input":
           setChatMessages((prev) => [...prev, message.data]);
           break;
-        case 'messages':
+        case "messages":
           setChatMessages(message.data);
           break;
-        case 'user_count':
+        case "user_count":
           setOnlineCount(message.data.count);
           break;
+        case "move_executed": {
+          setLastMoveExecuted(message.data);
+          const chosen = message.data?.chosenCommand;
+          const votes = message.data?.voteCounts || {};
+          const votesSummary = Object.entries(votes)
+            .map(([cmd, count]) => `${cmd}: ${count}`)
+            .join(", ");
+          const summary = chosen
+            ? `executed ${chosen}${votesSummary ? ` — votes ${votesSummary}` : ""}`
+            : "executed a move";
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              username: "system",
+              input: `🎮 ${summary}`,
+              timestamp: message.data?.timestamp ?? Date.now(),
+            },
+          ]);
+          console.log("Move executed:", message.data);
+          break;
+        }
       }
     });
 
@@ -92,5 +114,12 @@ export const useWebSocket = () => {
     wsServiceRef.current?.send(data);
   };
 
-  return { chatMessages, onlineCount, isAuthenticated, authStatus, send };
+  return {
+    chatMessages,
+    onlineCount,
+    isAuthenticated,
+    authStatus,
+    lastMoveExecuted,
+    send,
+  };
 };

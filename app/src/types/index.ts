@@ -5,6 +5,6 @@ export interface GameInput {
 }
 
 export interface ServerMessage {
-  type: 'auth_status' | 'input' | 'messages' | 'user_count';
+  type: 'auth_status' | 'input' | 'messages' | 'user_count' | 'move_executed';
   data: any;
 }
