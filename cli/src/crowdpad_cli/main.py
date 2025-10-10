@@ -23,18 +23,52 @@ def normalize_datetime(dt: datetime):
 
 
 class InputAggregator:
-    def __init__(self, device: CrowdPadController, aggregation_interval: int):
+    def __init__(
+        self,
+        device: CrowdPadController,
+        aggregation_interval: int,
+        websocket: websockets.ClientConnection,
+    ):
         self.device = device
         self.aggregation_interval = aggregation_interval
         self.inputs = deque()
         self.running = True
         self.window_start = None
+        self.websocket = websocket
 
     def add_input(self, username: str, input_command: str, timestamp: int):
         """Add an input to the buffer."""
         self.inputs.append(
             {'username': username, 'command': input_command, 'timestamp': timestamp}
         )
+
+    async def send_move_executed_message(
+        self,
+        chosen_command: str,
+        frequency: dict,
+        window_start: datetime,
+        window_end: datetime,
+    ):
+        """Send move_executed message to the server."""
+        if not self.websocket:
+            print('no websocket')
+            return
+
+        move_executed_message = {
+            'type': 'move_executed',
+            'data': {
+                'chosenCommand': chosen_command,
+                'voteCounts': frequency,
+                'windowStart': normalize_datetime(window_start),
+                'windowEnd': normalize_datetime(window_end),
+                'timestamp': normalize_datetime(datetime.now()),
+            },
+        }
+        try:
+            await self.websocket.send(json.dumps(move_executed_message))
+            print(f'Sent move_executed message: {chosen_command}')
+        except Exception as e:
+            print(f'Failed to send move_executed message: {e}')
 
     async def process_inputs(self):
         """Process inputs in aggregation intervals."""
@@ -86,6 +120,9 @@ class InputAggregator:
 
                 # Execute command
                 self.device.press_button(most_popular_command)
+                await self.send_move_executed_message(
+                    most_popular_command, frequency, window_start, window_end
+                )
             else:
                 print(
                     f'No inputs in {normalize_datetime(window_start)} - {normalize_datetime(window_end)} ---'
@@ -104,14 +141,15 @@ async def listen_websocket(
         print('SERVER_SECRET environment variable not set.')
         return
 
-    aggregator = InputAggregator(device, aggregation_interval)
-
     print(f'Connecting to WebSocket server at {SERVER_URI}...')
     print(f'Aggregation interval: {aggregation_interval}ms')
 
     try:
         async with websockets.connect(SERVER_URI) as websocket:
             print(f'Connected to WebSocket server at {SERVER_URI}')
+
+            # Create aggregator with websocket connection
+            aggregator = InputAggregator(device, aggregation_interval, websocket)
 
             # Send authentication message
             auth_message = {'type': 'auth', 'data': {'secretKey': SERVER_SECRET}}
