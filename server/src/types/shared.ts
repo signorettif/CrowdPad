@@ -9,16 +9,21 @@ export interface GameInput {
 }
 
 export interface ClientMessage {
-  type: 'input' | 'get_messages' | 'join' | 'auth';
+  type: 'input' | 'get_messages' | 'join' | 'auth' | 'move_executed';
   data?: {
     username?: string;
     input?: string;
     secretKey?: string;
+    chosenCommand?: string;
+    voteCounts?: Record<string, number>;
+    windowStart?: number;
+    windowEnd?: number;
+    timestamp?: number;
   };
 }
 
 export interface ServerMessage {
-  type: 'input' | 'messages' | 'user_count' | 'auth_status';
+  type: 'input' | 'messages' | 'user_count' | 'auth_status' | 'move_executed';
   data: any;
 }
 

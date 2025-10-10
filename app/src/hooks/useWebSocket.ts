@@ -40,6 +40,7 @@ export const useWebSocket = () => {
   const [chatMessages, setChatMessages] = useState<GameInput[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [lastMoveExecuted, setLastMoveExecuted] = useState<any>(null);
   const [authStatus, setAuthStatus] = useState({
     message: '',
     className: 'mt-2 text-sm text-center',
@@ -80,6 +81,27 @@ export const useWebSocket = () => {
         case 'user_count':
           setOnlineCount(message.data.count);
           break;
+        case 'move_executed': {
+          setLastMoveExecuted(message.data);
+          const chosen = message.data?.chosenCommand;
+          const votes = message.data?.voteCounts || {};
+          const votesSummary = Object.entries(votes)
+            .map(([cmd, count]) => `${cmd}: ${count}`)
+            .join(', ');
+          const summary = chosen
+            ? `executed ${chosen}${votesSummary ? ` — votes ${votesSummary}` : ''}`
+            : 'executed a move';
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              username: 'system',
+              input: `🎮 ${summary}`,
+              timestamp: message.data?.timestamp ?? Date.now(),
+            },
+          ]);
+          console.log('Move executed:', message.data);
+          break;
+        }
       }
     });
 
@@ -92,5 +114,12 @@ export const useWebSocket = () => {
     wsServiceRef.current?.send(data);
   };
 
-  return { chatMessages, onlineCount, isAuthenticated, authStatus, send };
+  return {
+    chatMessages,
+    onlineCount,
+    isAuthenticated,
+    authStatus,
+    lastMoveExecuted,
+    send,
+  };
 };
