@@ -1,6 +1,7 @@
-import { getInputCommanddown } from '../../constants.js';
+import { getInputCommanddown } from '../../constants';
 
-import type { ClientMessage, ServerMessage } from '../../types/shared.js';
+import type { ClientMessage } from '../../types/shared';
+import type { ServerMessage } from '../../types/serverMessages';
 
 export class WebSocketHandlers {
   private connectedUsers = new Set<any>();

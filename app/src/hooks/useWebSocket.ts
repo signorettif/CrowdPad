@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { getSocketUri } from '../utils/socket';
 
-import type { GameInput, ServerMessage, AuthStatus } from '../types';
+import type { GameInput, AuthStatus } from '../types';
+import type {
+  MoveExecutedMessage,
+  ServerMessage,
+} from '../types/serverMessages';
 
 // --- WebSocket Service (simplified from server/src/utils/websockets/service.ts) ---
 class WebSocketService {
@@ -40,7 +44,9 @@ class WebSocketService {
 export const useWebSocket = () => {
   const [chatMessages, setChatMessages] = useState<GameInput[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
-  const [lastMoveExecuted, setLastMoveExecuted] = useState<any>(null);
+  const [lastMoveExecuted, setLastMoveExecuted] = useState<
+    MoveExecutedMessage['data'] | null
+  >(null);
   const [authStatus, setAuthStatus] = useState<AuthStatus>('not_authenticated');
   const [aggregationInterval, setAggregationInterval] = useState<
     number | undefined
@@ -93,7 +99,6 @@ export const useWebSocket = () => {
               timestamp: message.data?.timestamp ?? Date.now(),
             },
           ]);
-          console.log('Move executed:', message.data);
           break;
         }
       }

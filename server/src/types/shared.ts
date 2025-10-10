@@ -22,11 +22,6 @@ export interface ClientMessage {
   };
 }
 
-export interface ServerMessage {
-  type: 'input' | 'messages' | 'user_count' | 'auth_status' | 'move_executed';
-  data: any;
-}
-
 export const GAME_INPUTS = [
   'up',
   'down',
