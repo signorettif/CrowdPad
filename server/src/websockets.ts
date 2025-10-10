@@ -12,7 +12,7 @@ export const webSocketHandler = {
   close(ws: any, _code: any, _message: any) {
     wsHandlers.handleClose(ws);
   },
-  drain(ws: any) {
+  drain(_ws: any) {
     // handle backpressure
   },
 };

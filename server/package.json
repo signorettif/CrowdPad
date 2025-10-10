@@ -6,17 +6,7 @@
     "start": "bun src/app.ts",
     "dev": "PORT=3000 bun --watch src/app.ts",
     "format": "prettier . --write",
-    "lint": "eslint .",
-    "prepare": "husky"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "prettier --write",
-      "eslint --fix"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
+    "lint": "eslint ."
   },
   "dependencies": {
     "bun": "1.2.18",
@@ -27,9 +17,7 @@
     "@types/bun": "1.2.18",
     "eslint": "^9.37.0",
     "globals": "^16.4.0",
-    "husky": "^9.1.7",
     "jiti": "^2.6.1",
-    "lint-staged": "^16.0.0",
     "prettier": "^3.5.3",
     "typescript": "5.8.3",
     "typescript-eslint": "^8.46.0"
