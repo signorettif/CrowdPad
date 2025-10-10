@@ -1,4 +1,3 @@
-
 import { db } from '../db';
 
 const configCache = new Map<string, any>();
@@ -8,7 +7,9 @@ export const getConfig = (key: string) => {
     return configCache.get(key);
   }
 
-  const config = db.query('SELECT value FROM config WHERE key = ?').get(key) as { value: any };
+  const config = db
+    .query('SELECT value FROM config WHERE key = ?')
+    .get(key) as { value: any };
   if (config) {
     configCache.set(key, config.value);
     return config.value;
