@@ -19,6 +19,7 @@ export interface ClientMessage {
     windowStart?: number;
     windowEnd?: number;
     timestamp?: number;
+    aggregationInterval?: number;
   };
 }
 

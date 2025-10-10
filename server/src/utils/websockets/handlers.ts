@@ -69,7 +69,7 @@ export class WebSocketHandlers {
     if (secretKey === expectedSecretKey) {
       this.authenticatedUsers.add(ws);
 
-      // If aggregationInterval is provided, this is the CLI
+      // aggregationInterval will be sent by the CLI
       if (aggregationInterval && typeof aggregationInterval === 'number') {
         this.aggregationInterval = aggregationInterval;
         console.log(`Aggregation interval set to: ${aggregationInterval}ms`);
