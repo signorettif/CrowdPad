@@ -106,5 +106,5 @@ Virtual gamepad controlled by a large crowd.
 
 1. Start server:
    ```bash
-   uv run python src/fluid_chat/main.py
+   uv run start listen
    ```
