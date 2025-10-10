@@ -37,7 +37,7 @@ export const Chat = ({
       </div>
       {aggregationInterval && (
         <div className="mb-2 text-sm text-gray-600">
-          <span className="font-semibold">Online:</span>
+          <span className="font-semibold">Aggregation interval:</span>
           <span> {(aggregationInterval / 1000).toFixed(2)} seconds</span>
         </div>
       )}

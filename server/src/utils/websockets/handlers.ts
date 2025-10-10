@@ -158,9 +158,9 @@ export class WebSocketHandlers {
     }
 
     this.broadcastMessage(clientMessage);
-    console.log(
-      `Move executed broadcast: ${moveExecutedData.command} with ${moveExecutedData.votes} votes`
-    );
+
+    const { command, votes } = clientMessage.data;
+    console.log(`Move executed broadcast: ${command} with ${votes} votes`);
   }
 
   private broadcastUserCount(): void {
