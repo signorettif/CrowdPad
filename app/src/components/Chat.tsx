@@ -3,9 +3,14 @@ import type { GameInput } from '../types';
 interface ChatProps {
   messages: GameInput[];
   onlineCount: number;
+  aggregationInterval?: number;
 }
 
-export const Chat = ({ messages, onlineCount }: ChatProps) => {
+export const Chat = ({
+  messages,
+  onlineCount,
+  aggregationInterval,
+}: ChatProps) => {
   return (
     <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-white p-6 shadow-lg">
       <h2 className="mb-4 text-lg font-bold text-gray-800">Live Commands</h2>
@@ -27,9 +32,15 @@ export const Chat = ({ messages, onlineCount }: ChatProps) => {
         )}
       </div>
       <div className="mb-2 text-sm text-gray-600">
-        <span className="font-semibold">Online:</span>{' '}
-        <span>{onlineCount}</span>
+        <span className="font-semibold">Online:</span>
+        <span> {onlineCount}</span>
       </div>
+      {aggregationInterval && (
+        <div className="mb-2 text-sm text-gray-600">
+          <span className="font-semibold">Online:</span>
+          <span> {(aggregationInterval / 1000).toFixed(2)} seconds</span>
+        </div>
+      )}
     </div>
   );
 };

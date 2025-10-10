@@ -155,7 +155,13 @@ async def listen_websocket(
             aggregator = InputAggregator(device, aggregation_interval, websocket)
 
             # Send authentication message
-            auth_message = {'type': 'auth', 'data': {'secretKey': SERVER_SECRET}}
+            auth_message = {
+                'type': 'auth',
+                'data': {
+                    'secretKey': SERVER_SECRET,
+                    'aggregationInterval': aggregation_interval,
+                },
+            }
             await websocket.send(json.dumps(auth_message))
             print('Sent authentication request')
 

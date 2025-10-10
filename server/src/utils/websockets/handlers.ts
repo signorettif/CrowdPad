@@ -6,6 +6,7 @@ export class WebSocketHandlers {
   private connectedUsers = new Set<any>();
   private authenticatedUsers = new Set<any>();
   private userLastInputTime = new Map<string, number>();
+  private aggregationInterval: number;
 
   handleMessage(ws: any, message: string): void {
     try {
@@ -52,19 +53,33 @@ export class WebSocketHandlers {
   }
 
   private handleAuthMessage(ws: any, clientMessage: ClientMessage): void {
-    const secretKey = clientMessage.data?.secretKey;
+    const { secretKey, aggregationInterval } = clientMessage.data || {};
     const expectedSecretKey = process.env.WEBSOCKET_SECRET_KEY;
 
     if (!expectedSecretKey) {
       console.warn('WEBSOCKET_SECRET_KEY not configured');
+      this.sendMessage(ws, {
+        type: 'auth_status',
+        data: { authenticated: false },
+      });
       return;
     }
 
     if (secretKey === expectedSecretKey) {
       this.authenticatedUsers.add(ws);
+
+      // If aggregationInterval is provided, this is the CLI
+      if (aggregationInterval && typeof aggregationInterval === 'number') {
+        this.aggregationInterval = aggregationInterval;
+        console.log(`Aggregation interval set to: ${aggregationInterval}ms`);
+      }
+
       this.sendMessage(ws, {
         type: 'auth_status',
-        data: { authenticated: true },
+        data: {
+          authenticated: true,
+          aggregationInterval: this.aggregationInterval,
+        },
       });
       console.log('User authenticated successfully');
     } else {
