@@ -9,7 +9,7 @@ export const webSocketHandler = {
   open(ws: any) {
     wsHandlers.handleOpen(ws);
   },
-  close(ws: any, code: any, message: any) {
+  close(ws: any, _code: any, _message: any) {
     wsHandlers.handleClose(ws);
   },
   drain(ws: any) {
