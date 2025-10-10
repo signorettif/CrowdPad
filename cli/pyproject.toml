@@ -26,3 +26,6 @@ start = "crowdpad_cli.main:cli"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
+
+[tool.ruff.format]
+quote-style = "single"

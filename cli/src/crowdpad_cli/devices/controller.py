@@ -19,9 +19,9 @@ def CrowdPadController(stub_controller: bool = False) -> _CrowdPadControllerProt
     if stub_controller:
         return StubCrowdPadController()
 
-    if not sys.platform.startswith("linux"):
+    if not sys.platform.startswith('linux'):
         print(
-            f"Non-Linux platform detected: {sys.platform}. Using stubbed controller instead of the Linux controller.",
+            f'Non-Linux platform detected: {sys.platform}. Using stubbed controller instead of the Linux controller.',
         )
         return StubCrowdPadController()
 

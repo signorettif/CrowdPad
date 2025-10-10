@@ -5,7 +5,7 @@ from typing import Dict
 
 # Import uinput only on Linux platforms; otherwise keep as None
 try:
-    if sys.platform.startswith("linux"):
+    if sys.platform.startswith('linux'):
         import uinput  # type: ignore
     else:
         uinput = None
@@ -15,14 +15,14 @@ except Exception:
 # Build button map only when uinput is available
 _BUTTON_MAP: Dict[str, int] = (
     {
-        "a": uinput.BTN_A,
-        "b": uinput.BTN_B,
-        "select": uinput.BTN_SELECT,
-        "start": uinput.BTN_START,
-        "left": uinput.BTN_DPAD_LEFT,
-        "right": uinput.BTN_DPAD_RIGHT,
-        "up": uinput.BTN_DPAD_UP,
-        "down": uinput.BTN_DPAD_DOWN,
+        'a': uinput.BTN_A,
+        'b': uinput.BTN_B,
+        'select': uinput.BTN_SELECT,
+        'start': uinput.BTN_START,
+        'left': uinput.BTN_DPAD_LEFT,
+        'right': uinput.BTN_DPAD_RIGHT,
+        'up': uinput.BTN_DPAD_UP,
+        'down': uinput.BTN_DPAD_DOWN,
     }
     if uinput is not None
     else {}
@@ -42,14 +42,14 @@ class LinuxCrowdPadController:
 
         events = tuple(_BUTTON_MAP.values()) + axes
 
-        self.device = uinput.Device(events, name="CrowdPad-Virtual-Joystick")
+        self.device = uinput.Device(events, name='CrowdPad-Virtual-Joystick')
 
     def press_button(self, key: str, duration: float = 0.1) -> None:
         button = _BUTTON_MAP.get(key)
 
         if not button:
             logging.warning(
-                "[press_button] Button not supported, key should be one of %s",
+                '[press_button] Button not supported, key should be one of %s',
                 list(_BUTTON_MAP.keys()),
             )
             return
