@@ -2,9 +2,9 @@
 
 Virtual gamepad controlled by a large crowd.
 
-- `app`: main app for users to send commands
-- `server`: brain of the operation
-- `cli`: virtual gamepad
+- [`app`](./app/README.md): main app for users to send commands
+- [`server`](./server/README.md): brain of the operation
+- [`cli`](./cli/README.md): virtual gamepad
 
 ## Contributing
 
@@ -106,5 +106,5 @@ Virtual gamepad controlled by a large crowd.
 
 1. Start server:
    ```bash
-   uv run python src/fluid_chat/main.py
+   uv run start listen
    ```
