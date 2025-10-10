@@ -73,6 +73,9 @@ class InputAggregator:
     async def process_inputs(self):
         """Process inputs in aggregation intervals."""
         while self.running:
+            # Pause to prevent a busy-wait loop and yield control to the
+            # asyncio event loop, allowing other tasks to run. This polling
+            # interval determines how frequently the loop checks for new inputs.
             await asyncio.sleep(0.1)
 
             if not self.inputs:
@@ -213,7 +216,8 @@ def cli():
 @cli.command()
 @click.option(
     '--aggregationInterval',
-    default=100,
+    default=os.environ.get('AGGREGATION_INTERVAL_MS', 1000),
+    type=int,
     help='The interval in milliseconds to aggregate commands.',
 )
 @click.option(
