@@ -8,20 +8,6 @@ export interface GameInput {
   timestamp: number;
 }
 
-export interface ClientMessage {
-  type: 'input' | 'get_messages' | 'join' | 'auth';
-  data?: {
-    username?: string;
-    input?: string;
-    secretKey?: string;
-  };
-}
-
-export interface ServerMessage {
-  type: 'input' | 'messages' | 'user_count' | 'auth_status';
-  data: any;
-}
-
 export const GAME_INPUTS = [
   'up',
   'down',

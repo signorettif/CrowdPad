@@ -1,11 +1,17 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
+
+import type { AuthStatus } from '../types';
+import { cn } from '../utils/cn';
+
+const AUTH_STATUS_MESSAGES: Record<AuthStatus, string> = {
+  not_authenticated: '',
+  authenticated: 'Authenticated successfully!',
+  authentication_error: 'Authentication failed. Please check your secret key.',
+};
 
 interface AuthProps {
   onAuthenticate: (secretKey: string) => void;
-  authStatus: {
-    message: string;
-    className: string;
-  };
+  authStatus: AuthStatus;
   username: string;
   setUsername: (username: string) => void;
 }
@@ -18,6 +24,10 @@ export const Auth = ({
 }: AuthProps) => {
   const [secretKey, setSecretKey] = useState('');
   const usernameInputRef = useRef<HTMLInputElement>(null);
+  const authStatusMessage = useMemo(
+    () => AUTH_STATUS_MESSAGES[authStatus],
+    [authStatus]
+  );
 
   const handleAuthenticate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +74,17 @@ export const Auth = ({
       >
         Authenticate
       </button>
-      <div className={authStatus.className}>{authStatus.message}</div>
+
+      {authStatusMessage && (
+        <div
+          className={cn('mt-2 text-center text-sm', {
+            'text-green-600': authStatus === 'authenticated',
+            'text-red-600': authStatus === 'authentication_error',
+          })}
+        >
+          {authStatusMessage}
+        </div>
+      )}
     </form>
   );
 };

@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { getSocketUri } from '../utils/socket';
-import type { GameInput, ServerMessage } from '../types';
+
+import type { GameInput, AuthStatus } from '../types';
+import type {
+  MoveExecutedMessage,
+  ServerMessage,
+} from '../types/serverMessages';
 
 // --- WebSocket Service (simplified from server/src/utils/websockets/service.ts) ---
 class WebSocketService {
@@ -39,11 +44,10 @@ class WebSocketService {
 export const useWebSocket = () => {
   const [chatMessages, setChatMessages] = useState<GameInput[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authStatus, setAuthStatus] = useState({
-    message: '',
-    className: 'mt-2 text-sm text-center',
-  });
+  const [authStatus, setAuthStatus] = useState<AuthStatus>('not_authenticated');
+  const [aggregationInterval, setAggregationInterval] = useState<
+    number | undefined
+  >();
   const wsServiceRef = useRef<WebSocketService | null>(null);
 
   useEffect(() => {
@@ -58,17 +62,11 @@ export const useWebSocket = () => {
       switch (message.type) {
         case 'auth_status':
           if (message.data.authenticated) {
-            setIsAuthenticated(true);
-            setAuthStatus({
-              message: 'Authenticated successfully!',
-              className: 'mt-2 text-sm text-center text-green-600',
-            });
+            setAuthStatus('authenticated');
+            if (message.data.aggregationInterval)
+              setAggregationInterval(message.data.aggregationInterval);
           } else {
-            setIsAuthenticated(false);
-            setAuthStatus({
-              message: 'Authentication failed. Please check your secret key.',
-              className: 'mt-2 text-sm text-center text-red-600',
-            });
+            setAuthStatus('authentication_error');
           }
           break;
         case 'input':
@@ -80,6 +78,19 @@ export const useWebSocket = () => {
         case 'user_count':
           setOnlineCount(message.data.count);
           break;
+        case 'move_executed': {
+          console.log(message.data);
+          const { command, votes, timestamp } = message.data;
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              username: 'system',
+              input: `🎮 executed ${command} with ${votes} votes`,
+              timestamp,
+            },
+          ]);
+          break;
+        }
       }
     });
 
@@ -92,5 +103,11 @@ export const useWebSocket = () => {
     wsServiceRef.current?.send(data);
   };
 
-  return { chatMessages, onlineCount, isAuthenticated, authStatus, send };
+  return {
+    chatMessages,
+    onlineCount,
+    authStatus,
+    aggregationInterval,
+    send,
+  };
 };

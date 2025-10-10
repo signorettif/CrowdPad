@@ -1,11 +1,18 @@
-import { getInputCommanddown } from '../../constants.js';
+import { getInputCommanddown } from '../../constants';
 
-import type { ClientMessage, ServerMessage } from '../../types/shared.js';
+import type {
+  AuthMessage,
+  ClientMessage,
+  InputMessage,
+  MoveExecutedClientMessage,
+} from '../../types/clientMessages';
+import type { ServerMessage } from '../../types/serverMessages';
 
 export class WebSocketHandlers {
   private connectedUsers = new Set<any>();
   private authenticatedUsers = new Set<any>();
   private userLastInputTime = new Map<string, number>();
+  private aggregationInterval: number;
 
   handleMessage(ws: any, message: string): void {
     try {
@@ -20,6 +27,9 @@ export class WebSocketHandlers {
           break;
         case 'join':
           this.handleJoinMessage(ws);
+          break;
+        case 'move_executed':
+          this.handleMoveExecutedMessage(ws, clientMessage);
           break;
         default:
           console.warn('Unknown message type:', clientMessage.type);
@@ -48,20 +58,34 @@ export class WebSocketHandlers {
     console.log(`Connection closed. Total users: ${this.connectedUsers.size}`);
   }
 
-  private handleAuthMessage(ws: any, clientMessage: ClientMessage): void {
-    const secretKey = clientMessage.data?.secretKey;
+  private handleAuthMessage(ws: any, clientMessage: AuthMessage): void {
+    const { secretKey, aggregationInterval } = clientMessage.data;
     const expectedSecretKey = process.env.WEBSOCKET_SECRET_KEY;
 
     if (!expectedSecretKey) {
       console.warn('WEBSOCKET_SECRET_KEY not configured');
+      this.sendMessage(ws, {
+        type: 'auth_status',
+        data: { authenticated: false },
+      });
       return;
     }
 
     if (secretKey === expectedSecretKey) {
       this.authenticatedUsers.add(ws);
+
+      // aggregationInterval will be sent by the CLI
+      if (aggregationInterval && typeof aggregationInterval === 'number') {
+        this.aggregationInterval = aggregationInterval;
+        console.log(`Aggregation interval set to: ${aggregationInterval}ms`);
+      }
+
       this.sendMessage(ws, {
         type: 'auth_status',
-        data: { authenticated: true },
+        data: {
+          authenticated: true,
+          aggregationInterval: this.aggregationInterval,
+        },
       });
       console.log('User authenticated successfully');
     } else {
@@ -73,20 +97,20 @@ export class WebSocketHandlers {
     }
   }
 
-  private handleInputMessage(ws: any, clientMessage: ClientMessage): void {
+  private handleInputMessage(ws: any, clientMessage: InputMessage): void {
     // Check if user is authenticated
     if (!this.authenticatedUsers.has(ws)) {
       console.log('Input rejected: User not authenticated');
       return;
     }
 
+    const { username, input } = clientMessage.data;
+
     // Validate username is provided
-    if (!clientMessage.data?.username || !clientMessage.data.username.trim()) {
+    if (!username?.trim()) {
       console.log('Input rejected: No username provided');
       return;
     }
-
-    const username = clientMessage.data.username.trim();
     const currentTime = Date.now();
     const lastInputTime = this.userLastInputTime.get(username) || 0;
 
@@ -100,18 +124,18 @@ export class WebSocketHandlers {
     this.userLastInputTime.set(username, currentTime);
 
     // Broadcast to all connected users (including sender)
-    const inputMessage: ServerMessage = {
+    const serverInputMessage: ServerMessage = {
       type: 'input',
       data: {
-        username: username,
-        input: clientMessage.data.input,
+        username: username.trim(),
+        input,
         timestamp: currentTime,
       },
     };
 
-    this.broadcastMessage(inputMessage);
+    this.broadcastMessage(serverInputMessage);
     console.log(
-      `timestamp: ${currentTime}, user: ${username}, input: ${clientMessage.data.input}`
+      `timestamp: ${currentTime}, user: ${username}, input: ${inputMessageData.input}`
     );
   }
 
@@ -121,6 +145,22 @@ export class WebSocketHandlers {
       data: { count: this.connectedUsers.size },
     };
     this.sendMessage(ws, userCountMessage);
+  }
+
+  private handleMoveExecutedMessage(
+    ws: any,
+    clientMessage: MoveExecutedClientMessage
+  ): void {
+    // Check if user is authenticated (CLI should be authenticated)
+    if (!this.authenticatedUsers.has(ws)) {
+      console.log('Move executed message rejected: User not authenticated');
+      return;
+    }
+
+    this.broadcastMessage(clientMessage);
+
+    const { command, votes } = clientMessage.data;
+    console.log(`Move executed broadcast: ${command} with ${votes} votes`);
   }
 
   private broadcastUserCount(): void {
