@@ -1,6 +1,6 @@
 import uinput
 import time
-from typing import Tuple, Dict
+from typing import Dict
 
 
 _BUTTON_MAP: Dict[str, int] = {

@@ -9,7 +9,6 @@ import websockets
 from dotenv import load_dotenv
 
 from crowdpad_cli.device import CrowdPadController
-from crowdpad_cli.models.game_input import GameInput
 
 
 load_dotenv()

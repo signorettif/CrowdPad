@@ -69,9 +69,9 @@ function App() {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto p-4">
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col gap-6 lg:flex-row">
           <Controls
             onAuthenticate={handleAuthenticate}
             authStatus={authStatus}
