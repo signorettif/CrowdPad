@@ -14,10 +14,8 @@ export interface ClientMessage {
     username?: string;
     input?: string;
     secretKey?: string;
-    chosenCommand?: string;
-    voteCounts?: Record<string, number>;
-    windowStart?: number;
-    windowEnd?: number;
+    command?: string;
+    votes?: number;
     timestamp?: number;
     aggregationInterval?: number;
   };

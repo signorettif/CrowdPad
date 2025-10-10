@@ -32,11 +32,9 @@ export interface UserCountMessage {
 export interface MoveExecutedMessage {
   type: 'move_executed';
   data: {
-    chosenCommand?: string;
-    voteCounts?: Record<string, number>;
-    windowStart?: number;
-    windowEnd?: number;
-    timestamp?: number;
+    command: string;
+    votes: number;
+    timestamp: number;
   };
 }
 

@@ -45,9 +45,7 @@ class InputAggregator:
     async def send_move_executed_message(
         self,
         chosen_command: str,
-        frequency: dict,
-        window_start: datetime,
-        window_end: datetime,
+        votes: int,
     ):
         """Send move_executed message to the server."""
         if not self.websocket:
@@ -57,13 +55,12 @@ class InputAggregator:
         move_executed_message = {
             'type': 'move_executed',
             'data': {
-                'chosenCommand': chosen_command,
-                'voteCounts': frequency,
-                'windowStart': normalize_datetime(window_start),
-                'windowEnd': normalize_datetime(window_end),
+                'command': chosen_command,
+                'votes': votes,
                 'timestamp': normalize_datetime(datetime.now()),
             },
         }
+        print(move_executed_message)
         try:
             await self.websocket.send(json.dumps(move_executed_message))
             print(f'Sent move_executed message: {chosen_command}')
@@ -124,7 +121,8 @@ class InputAggregator:
                 # Execute command
                 self.device.press_button(most_popular_command)
                 await self.send_move_executed_message(
-                    most_popular_command, frequency, window_start, window_end
+                    most_popular_command,
+                    frequency[most_popular_command],
                 )
             else:
                 print(

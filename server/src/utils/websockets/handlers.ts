@@ -156,18 +156,15 @@ export class WebSocketHandlers {
     const moveExecutedMessage: ServerMessage = {
       type: 'move_executed',
       data: {
-        chosenCommand: clientMessage.data?.chosenCommand,
-        voteCounts: clientMessage.data?.voteCounts,
-        windowStart: clientMessage.data?.windowStart,
-        windowEnd: clientMessage.data?.windowEnd,
+        command: clientMessage.data?.command,
+        votes: clientMessage.data?.votes,
         timestamp: clientMessage.data?.timestamp,
       },
     };
 
     this.broadcastMessage(moveExecutedMessage);
     console.log(
-      `Move executed broadcast: ${clientMessage.data?.chosenCommand} with votes:`,
-      clientMessage.data?.voteCounts
+      `Move executed broadcast: ${clientMessage.data?.command} with ${clientMessage.data?.votes} votes`
     );
   }
 

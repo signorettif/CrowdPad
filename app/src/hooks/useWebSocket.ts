@@ -44,9 +44,6 @@ class WebSocketService {
 export const useWebSocket = () => {
   const [chatMessages, setChatMessages] = useState<GameInput[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
-  const [lastMoveExecuted, setLastMoveExecuted] = useState<
-    MoveExecutedMessage['data'] | null
-  >(null);
   const [authStatus, setAuthStatus] = useState<AuthStatus>('not_authenticated');
   const [aggregationInterval, setAggregationInterval] = useState<
     number | undefined
@@ -82,21 +79,14 @@ export const useWebSocket = () => {
           setOnlineCount(message.data.count);
           break;
         case 'move_executed': {
-          setLastMoveExecuted(message.data);
-          const chosen = message.data?.chosenCommand;
-          const votes = message.data?.voteCounts || {};
-          const votesSummary = Object.entries(votes)
-            .map(([cmd, count]) => `${cmd}: ${count}`)
-            .join(', ');
-          const summary = chosen
-            ? `executed ${chosen}${votesSummary ? ` — votes ${votesSummary}` : ''}`
-            : 'executed a move';
+          console.log(message.data);
+          const { command, votes, timestamp } = message.data;
           setChatMessages((prev) => [
             ...prev,
             {
               username: 'system',
-              input: `🎮 ${summary}`,
-              timestamp: message.data?.timestamp ?? Date.now(),
+              input: `🎮 executed ${command} with ${votes} votes`,
+              timestamp,
             },
           ]);
           break;
@@ -118,7 +108,6 @@ export const useWebSocket = () => {
     onlineCount,
     authStatus,
     aggregationInterval,
-    lastMoveExecuted,
     send,
   };
 };
