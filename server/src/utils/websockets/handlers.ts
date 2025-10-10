@@ -1,6 +1,11 @@
 import { getInputCommanddown } from '../../constants';
 
-import type { ClientMessage } from '../../types/shared';
+import type {
+  AuthMessage,
+  ClientMessage,
+  InputMessage,
+  MoveExecutedClientMessage,
+} from '../../types/clientMessages';
 import type { ServerMessage } from '../../types/serverMessages';
 
 export class WebSocketHandlers {
@@ -53,8 +58,8 @@ export class WebSocketHandlers {
     console.log(`Connection closed. Total users: ${this.connectedUsers.size}`);
   }
 
-  private handleAuthMessage(ws: any, clientMessage: ClientMessage): void {
-    const { secretKey, aggregationInterval } = clientMessage.data || {};
+  private handleAuthMessage(ws: any, clientMessage: AuthMessage): void {
+    const { secretKey, aggregationInterval } = clientMessage.data;
     const expectedSecretKey = process.env.WEBSOCKET_SECRET_KEY;
 
     if (!expectedSecretKey) {
@@ -92,20 +97,20 @@ export class WebSocketHandlers {
     }
   }
 
-  private handleInputMessage(ws: any, clientMessage: ClientMessage): void {
+  private handleInputMessage(ws: any, clientMessage: InputMessage): void {
     // Check if user is authenticated
     if (!this.authenticatedUsers.has(ws)) {
       console.log('Input rejected: User not authenticated');
       return;
     }
 
+    const { username, input } = clientMessage.data;
+
     // Validate username is provided
-    if (!clientMessage.data?.username || !clientMessage.data.username.trim()) {
+    if (!username?.trim()) {
       console.log('Input rejected: No username provided');
       return;
     }
-
-    const username = clientMessage.data.username.trim();
     const currentTime = Date.now();
     const lastInputTime = this.userLastInputTime.get(username) || 0;
 
@@ -119,18 +124,18 @@ export class WebSocketHandlers {
     this.userLastInputTime.set(username, currentTime);
 
     // Broadcast to all connected users (including sender)
-    const inputMessage: ServerMessage = {
+    const serverInputMessage: ServerMessage = {
       type: 'input',
       data: {
-        username: username,
-        input: clientMessage.data.input,
+        username: username.trim(),
+        input,
         timestamp: currentTime,
       },
     };
 
-    this.broadcastMessage(inputMessage);
+    this.broadcastMessage(serverInputMessage);
     console.log(
-      `timestamp: ${currentTime}, user: ${username}, input: ${clientMessage.data.input}`
+      `timestamp: ${currentTime}, user: ${username}, input: ${inputMessageData.input}`
     );
   }
 
@@ -144,7 +149,7 @@ export class WebSocketHandlers {
 
   private handleMoveExecutedMessage(
     ws: any,
-    clientMessage: ClientMessage
+    clientMessage: MoveExecutedClientMessage
   ): void {
     // Check if user is authenticated (CLI should be authenticated)
     if (!this.authenticatedUsers.has(ws)) {
@@ -152,19 +157,9 @@ export class WebSocketHandlers {
       return;
     }
 
-    // Broadcast the move execution to all connected clients
-    const moveExecutedMessage: ServerMessage = {
-      type: 'move_executed',
-      data: {
-        command: clientMessage.data?.command,
-        votes: clientMessage.data?.votes,
-        timestamp: clientMessage.data?.timestamp,
-      },
-    };
-
-    this.broadcastMessage(moveExecutedMessage);
+    this.broadcastMessage(clientMessage);
     console.log(
-      `Move executed broadcast: ${clientMessage.data?.command} with ${clientMessage.data?.votes} votes`
+      `Move executed broadcast: ${moveExecutedData.command} with ${moveExecutedData.votes} votes`
     );
   }
 
