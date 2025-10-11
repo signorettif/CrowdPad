@@ -4,6 +4,11 @@ export interface GameInput {
   timestamp: number;
 }
 
+export interface Config {
+  aggregationInterval: number;
+  cooldown: number;
+}
+
 export type AuthStatus =
   | 'not_authenticated'
   | 'authenticated'

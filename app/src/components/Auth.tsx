@@ -1,7 +1,9 @@
-import { useState, useRef, useMemo } from 'react';
+import { useMemo, type FormEventHandler } from 'react';
+
+import { useWebSocket } from '../contexts/WebSocketContext';
+import { cn } from '../utils/cn';
 
 import type { AuthStatus } from '../types';
-import { cn } from '../utils/cn';
 
 const AUTH_STATUS_MESSAGES: Record<AuthStatus, string> = {
   not_authenticated: '',
@@ -10,47 +12,53 @@ const AUTH_STATUS_MESSAGES: Record<AuthStatus, string> = {
 };
 
 interface AuthProps {
-  onAuthenticate: (secretKey: string) => void;
-  authStatus: AuthStatus;
-  username: string;
-  setUsername: (username: string) => void;
+  onAuthenticationSuccess: (authenticatedUsername: string) => void;
 }
 
-export const Auth = ({
-  onAuthenticate,
-  authStatus,
-  username,
-  setUsername,
-}: AuthProps) => {
-  const [secretKey, setSecretKey] = useState('');
-  const usernameInputRef = useRef<HTMLInputElement>(null);
-  const authStatusMessage = useMemo(
-    () => AUTH_STATUS_MESSAGES[authStatus],
-    [authStatus]
-  );
+export const Auth = ({ onAuthenticationSuccess }: AuthProps) => {
+  const { authStatus, send } = useWebSocket();
+  const authStatusMessage = AUTH_STATUS_MESSAGES[authStatus];
+  const isAuthenticationDisabled = authStatus === 'authenticated';
 
-  const handleAuthenticate = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAuthenticate: FormEventHandler<HTMLFormElement> = (evt) => {
+    evt.preventDefault();
 
-    if (!secretKey.trim()) {
+    const formData = new FormData(evt.currentTarget);
+    const secretKey = formData.get('secretKey') as string;
+    const username = formData.get('username') as string;
+    if (!secretKey?.trim()) {
       alert('Please enter a secret key');
       return;
     }
-    onAuthenticate(secretKey);
+    if (!username?.trim()) {
+      alert('Please enter a secret key');
+      return;
+    }
+
+    send({
+      type: 'auth',
+      data: { secretKey },
+    });
+    onAuthenticationSuccess(username);
   };
 
   return (
-    <form className="mb-6" onSubmit={handleAuthenticate}>
+    <form
+      aria-disabled={isAuthenticationDisabled}
+      className="mb-6"
+      onSubmit={handleAuthenticate}
+    >
       <div className="mb-4">
         <label className="mb-2 block text-sm font-bold text-gray-700">
           Secret Key
         </label>
         <input
           type="password"
-          value={secretKey}
-          onChange={(e) => setSecretKey(e.target.value)}
+          name="secretKey"
           className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           placeholder="Enter secret key"
+          disabled={isAuthenticationDisabled}
+          aria-disabled={isAuthenticationDisabled}
         />
       </div>
 
@@ -59,18 +67,20 @@ export const Auth = ({
           Username
         </label>
         <input
-          ref={usernameInputRef}
           type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          name="username"
           className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           placeholder="Enter your username"
+          disabled={isAuthenticationDisabled}
+          aria-disabled={isAuthenticationDisabled}
         />
       </div>
 
       <button
         type="submit"
         className="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        disabled={isAuthenticationDisabled}
+        aria-disabled={isAuthenticationDisabled}
       >
         Authenticate
       </button>
