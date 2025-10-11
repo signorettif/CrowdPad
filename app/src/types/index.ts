@@ -13,3 +13,9 @@ export type AuthStatus =
   | 'not_authenticated'
   | 'authenticated'
   | 'authentication_error';
+
+export type UpdateConfigStatus =
+  | 'not_started'
+  | 'updating'
+  | 'updated'
+  | 'update_error';

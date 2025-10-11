@@ -49,6 +49,10 @@ class Config {
     return Object.keys(this.getAll());
   }
 
+  hasKey(candidateKey: string): candidateKey is ConfigKey {
+    return this.getAllKeys().includes(candidateKey);
+  }
+
   update(key: ConfigKey, value: any) {
     this[key] = value;
     db.run(
@@ -56,6 +60,16 @@ class Config {
       this.getDbKey(key),
       value
     );
+  }
+
+  isValueValidForKey(key: ConfigKey, value: string) {
+    switch (key) {
+      case 'aggregationInterval':
+      case 'cooldown':
+        return typeof value === 'number' && value > 0;
+      default:
+        return true;
+    }
   }
 
   private getDbKey(key: ConfigKey): string {

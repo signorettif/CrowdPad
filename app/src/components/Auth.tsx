@@ -1,8 +1,7 @@
-import { useMemo, type FormEventHandler } from 'react';
-
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { cn } from '../utils/cn';
 
+import type { FormEventHandler } from 'react';
 import type { AuthStatus } from '../types';
 
 const AUTH_STATUS_MESSAGES: Record<AuthStatus, string> = {
@@ -44,9 +43,9 @@ export const Auth = ({ onAuthenticationSuccess }: AuthProps) => {
 
   return (
     <form
-      aria-disabled={isAuthenticationDisabled}
       className="mb-6"
       onSubmit={handleAuthenticate}
+      aria-disabled={isAuthenticationDisabled}
     >
       <div className="mb-4">
         <label className="mb-2 block text-sm font-bold text-gray-700">
