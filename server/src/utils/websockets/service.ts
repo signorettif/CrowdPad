@@ -1,4 +1,5 @@
-import type { ClientMessage, ServerMessage } from '../../types/shared.js';
+import type { ClientMessage } from '../../types/shared';
+import type { ServerMessage } from '../../types/serverMessages';
 
 export class WebSocketService {
   private ws: WebSocket;

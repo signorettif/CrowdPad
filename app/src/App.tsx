@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react';
 import './style.css';
-import { useWebSocket } from './hooks/useWebSocket';
+
+import { useState, useEffect } from 'react';
+
 import { Controls } from './components/Controls';
 import { Chat } from './components/Chat';
+
+import { useWebSocket } from './hooks/useWebSocket';
 
 function App() {
   const [username, setUsername] = useState('');
   const [lastInputTime, setLastInputTime] = useState(0);
   const [cooldown, setCooldown] = useState(1000);
-  const { chatMessages, onlineCount, isAuthenticated, authStatus, send } =
+  const { chatMessages, onlineCount, aggregationInterval, authStatus, send } =
     useWebSocket();
 
   useEffect(() => {
@@ -40,7 +43,7 @@ function App() {
   };
 
   const handleGameInput = (input: string) => {
-    if (!isAuthenticated) {
+    if (authStatus !== 'authenticated') {
       alert('Please authenticate first');
       return;
     }
@@ -78,10 +81,13 @@ function App() {
             username={username}
             setUsername={setUsername}
             onGameInput={handleGameInput}
-            gameControlsDisabled={!isAuthenticated}
             cooldown={cooldown}
           />
-          <Chat messages={chatMessages} onlineCount={onlineCount} />
+          <Chat
+            messages={chatMessages}
+            onlineCount={onlineCount}
+            aggregationInterval={aggregationInterval}
+          />
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@ The CrowdPad `cli` is a Python daemon that listens for incoming messages from th
 
 | Option                  | Description                                             | Default |
 | ----------------------- | ------------------------------------------------------- | ------- |
-| `--aggregationInterval` | The interval in milliseconds to aggregate commands.     | `100`   |
+| `--aggregationInterval` | The interval in milliseconds to aggregate commands.     | `1000`  |
 | `--stubController`      | Use a stubbed implementation to simulate inputs (flag). | `False` |
 | `--delay`               | Delay in milliseconds before sending the input.         | `0`     |
 

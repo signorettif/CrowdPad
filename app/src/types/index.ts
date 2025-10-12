@@ -4,7 +4,7 @@ export interface GameInput {
   timestamp: number;
 }
 
-export interface ServerMessage {
-  type: 'auth_status' | 'input' | 'messages' | 'user_count';
-  data: any;
-}
+export type AuthStatus =
+  | 'not_authenticated'
+  | 'authenticated'
+  | 'authentication_error';
