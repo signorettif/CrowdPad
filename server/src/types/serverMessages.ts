@@ -4,7 +4,10 @@ export interface AuthStatusMessage {
   type: 'auth_status';
   data: {
     authenticated: boolean;
-    aggregationInterval?: number;
+    config?: {
+      aggregationInterval: number;
+      cooldown: number;
+    };
   };
 }
 

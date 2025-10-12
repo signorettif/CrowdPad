@@ -1,10 +1,10 @@
-import type { GameInput } from '.';
+import type { Config, GameInput } from '.';
 
 export interface AuthStatusMessage {
   type: 'auth_status';
   data: {
     authenticated: boolean;
-    aggregationInterval?: number;
+    config?: Config;
   };
 }
 

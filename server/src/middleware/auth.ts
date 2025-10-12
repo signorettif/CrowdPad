@@ -3,12 +3,8 @@ export const withAdminAuth = (
 ) => {
   return (req: Request) => {
     const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-
-    const token = authHeader.split(' ')[1];
-    if (token !== process.env.ADMIN_KEY) {
+    const authToken = authHeader.split(' ')[1];
+    if (authToken !== process.env.ADMIN_KEY) {
       return new Response('Unauthorized', { status: 401 });
     }
 
