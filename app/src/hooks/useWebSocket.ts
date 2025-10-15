@@ -2,10 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getSocketUri } from '../utils/socket';
 
 import type { GameInput, AuthStatus } from '../types';
-import type {
-  MoveExecutedMessage,
-  ServerMessage,
-} from '../types/serverMessages';
+import type { ServerMessage } from '../types/serverMessages';
 
 // --- WebSocket Service (simplified from server/src/utils/websockets/service.ts) ---
 class WebSocketService {
