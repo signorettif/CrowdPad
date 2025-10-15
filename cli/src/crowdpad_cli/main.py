@@ -73,7 +73,8 @@ class InputAggregator:
             # Pause to prevent a busy-wait loop and yield control to the
             # asyncio event loop, allowing other tasks to run. This polling
             # interval determines how frequently the loop checks for new inputs.
-            await asyncio.sleep(0.1)
+            # Should align with the provided aggregation interval
+            await asyncio.sleep(self.aggregation_interval / 1000)
 
             if not self.inputs:
                 continue
