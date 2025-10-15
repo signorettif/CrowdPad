@@ -2,23 +2,23 @@ import { useEffect, useState } from 'react';
 
 import { UpdateConfigForm } from '../components/admin/UpdateConfig';
 
-import { getAllConfig } from '../api/config';
+import { getConfig } from '../api/config';
 
 import type { Config } from '../types';
 
 export const Admin = () => {
   const [initialConfig, setInitialConfig] = useState<Config | undefined>(
-    undefined
+    undefined,
   );
-  const [error, setError] = useState(undefined);
+  const [error, setError] = useState<Error | undefined>(undefined);
   const loadingInitialConfig = !initialConfig && !error;
 
   useEffect(() => {
-    getAllConfig()
-      .then((configResponse) => {
+    getConfig()
+      .then(configResponse => {
         setInitialConfig(configResponse);
       })
-      .catch((err) => setError(err));
+      .catch(err => setError(err));
   }, []);
 
   return (
@@ -29,9 +29,11 @@ export const Admin = () => {
             {loadingInitialConfig ? (
               'Loading...'
             ) : error ? (
-              `There was an error ${error}`
-            ) : (
+              `There was an error: ${error.message}`
+            ) : initialConfig ? (
               <UpdateConfigForm initialConfig={initialConfig} />
+            ) : (
+              'No configuration found.'
             )}
           </div>
         </div>

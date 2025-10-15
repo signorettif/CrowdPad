@@ -21,16 +21,6 @@ export const withCors = (
       return response;
     }
 
-    if (req.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': allowedOrigins[0] || '',
-          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
-      });
-    }
-
     return handler(req, server);
   };
 };

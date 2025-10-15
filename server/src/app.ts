@@ -20,6 +20,18 @@ const server = Bun.serve({
       }
       return new Response('WebSocket upgrade failed', { status: 400 });
     }
+
+    if (req.method === 'OPTIONS') {
+      const headers = {
+        'Access-Control-Allow-Origin': (
+          process.env.CORS_ALLOW_ORIGINS || ''
+        ).split(','),
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      };
+      return new Response(null, { status: 204, headers });
+    }
+
     return new Response('Not found', { status: 404 });
   },
   websocket: webSocketHandler,

@@ -7,7 +7,7 @@ import type { Config, UpdateConfigStatus } from '../../types';
 
 const UPDATE_CONFIG_STATUS_MESSAGES: Record<UpdateConfigStatus, string> = {
   not_started: '',
-  updating: '',
+  updating: 'Updating config...',
   updated: 'Config updated successfully!',
   update_error: 'Error updating config.',
 };
@@ -19,27 +19,32 @@ interface UpdateConfigFormProps {
 export const UpdateConfigForm = ({ initialConfig }: UpdateConfigFormProps) => {
   const [updateConfigStatus, setUpdateConfigStatus] =
     useState<UpdateConfigStatus>('not_started');
-  const updateConfigStatusMessage = UPDATE_CONFIG_STATUS_MESSAGES[authStatus];
-  const isUpdateConfigDisabled = updateConfigStatusMessage === 'updating';
+  const updateConfigStatusMessage =
+    UPDATE_CONFIG_STATUS_MESSAGES[updateConfigStatus];
+  const isUpdateConfigDisabled = updateConfigStatus === 'updating';
 
-  const handleUpdateConfig: FormEventHandler<HTMLFormElement> = async (evt) => {
+  const handleUpdateConfig: FormEventHandler<HTMLFormElement> = async evt => {
     evt.preventDefault();
     setUpdateConfigStatus('updating');
 
     const formData = new FormData(evt.currentTarget);
-    const secretKey = formData.get('secretKey') as string;
-    const username = formData.get('username') as string;
-    if (!secretKey?.trim()) {
-      alert('Please enter a secret key');
-      return;
-    }
-    if (!username?.trim()) {
-      alert('Please enter a secret key');
-      return;
+    const newConfig: Partial<Config> = {};
+
+    for (const key in initialConfig) {
+      if (Object.prototype.hasOwnProperty.call(initialConfig, key)) {
+        const formValue = formData.get(key) as string;
+        const initialValue = initialConfig[key as keyof Config];
+
+        if (typeof initialValue === 'number') {
+          newConfig[key as keyof Config] = Number(formValue);
+        } else {
+          newConfig[key as keyof Config] = formValue;
+        }
+      }
     }
 
     try {
-      await updateConfig(config);
+      await updateConfig(newConfig as Config);
       setUpdateConfigStatus('updated');
     } catch (err) {
       setUpdateConfigStatus('update_error');
@@ -52,20 +57,20 @@ export const UpdateConfigForm = ({ initialConfig }: UpdateConfigFormProps) => {
       onSubmit={handleUpdateConfig}
       aria-disabled={isUpdateConfigDisabled}
     >
-      {Object.values(initialConfig).map(([configKey, configValue]) => {
+      {Object.entries(initialConfig).map(([configKey, configValue]) => {
         return (
-          <div className="mb-4">
+          <div className="mb-4" key={configKey}>
             <label className="mb-2 block text-sm font-bold text-gray-700">
               {configKey}
             </label>
             <input
-              type="text"
+              type={typeof configValue === 'number' ? 'number' : 'text'}
               name={configKey}
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder={configKey}
-              defaultValue={configValue}
-              disabled={isUpdate}
-              aria-disabled={isUpdate}
+              defaultValue={String(configValue)}
+              disabled={isUpdateConfigDisabled}
+              aria-disabled={isUpdateConfigDisabled}
             />
           </div>
         );
@@ -77,7 +82,7 @@ export const UpdateConfigForm = ({ initialConfig }: UpdateConfigFormProps) => {
         disabled={isUpdateConfigDisabled}
         aria-disabled={isUpdateConfigDisabled}
       >
-        Authenticate
+        Update Config
       </button>
 
       {updateConfigStatusMessage && (
@@ -85,6 +90,7 @@ export const UpdateConfigForm = ({ initialConfig }: UpdateConfigFormProps) => {
           className={cn('mt-2 text-center text-sm', {
             'text-green-600': updateConfigStatus === 'updated',
             'text-red-600': updateConfigStatus === 'update_error',
+            'text-gray-600': updateConfigStatus === 'updating',
           })}
         >
           {updateConfigStatusMessage}

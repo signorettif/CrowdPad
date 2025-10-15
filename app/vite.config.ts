@@ -4,5 +4,5 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: '/CrowdPad',
+  base: '/CrowdPad', // Must mach the BrowserRouter `basename` in `App.tsx`
 });
