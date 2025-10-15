@@ -14,6 +14,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: server-production
+      url: https://crowdpad-server.fly.dev/health
     steps:
       - name: Checkout
         uses: actions/checkout@v4
