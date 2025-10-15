@@ -24,8 +24,6 @@ export const Gamepad = ({ username }: GamepadProps) => {
 
     const lastInputTime = lastInputTimeRef.current;
     const currentTime = Date.now();
-    console.log('currentTime', currentTime);
-    console.log('lastInputTime', lastInputTime);
     if (config && currentTime - lastInputTime < config.cooldown) {
       const remainingTime = Math.ceil(
         (config.cooldown - (currentTime - lastInputTime)) / 1000
