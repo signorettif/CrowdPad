@@ -1,11 +1,11 @@
-name: Deploy
-
+name: Deploy `app`
 on:
   push:
     branches:
       - master
     paths:
       - 'app/**'
+      - '.github/workflows/app-deploy.yaml'
 
 env:
   VITE_WEBSOCKET_URL: ${{ secrets.VITE_WEBSOCKET_URL }}
@@ -22,10 +22,10 @@ concurrency:
 
 jobs:
   deploy:
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./app
