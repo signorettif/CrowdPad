@@ -39,3 +39,48 @@ To run the application without requiring `sudo`, you need to grant your user per
     For the group changes to take effect, you need to log out of your current session and log back in.
 
 After following these steps, you can run the application without `sudo`.
+
+## Contributing
+
+### Configure environment
+
+1. Install `uv` globally (e.g. via [Homebrew](https://brew.sh/)):
+
+   ```bash
+   brew install uv
+   uv --version
+   ```
+
+1. Navigate to the `./cli` directory
+
+1. Create & activate a virtual environment:
+
+   ```bash
+   uv venv .venv
+   source .venv/bin/activate
+   ```
+
+1. Install dependencies:
+
+   ```bash
+   uv pip install -e .
+   ```
+
+1. Install [Ruff extension](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) on VSCode / Cursor
+
+1. Clone `.env.example` into `.env` and populate the required keys
+
+### Running the app locally
+
+1. Navigate to the `./cli` directory
+
+1. Activate environment:
+
+   ```bash
+   source .venv/bin/activate
+   ```
+
+1. Start server:
+   ```bash
+   uv run start listen
+   ```
