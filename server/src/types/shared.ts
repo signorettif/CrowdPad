@@ -20,3 +20,8 @@ export const GAME_INPUTS = [
 ] as const;
 
 export type GameInputType = (typeof GAME_INPUTS)[number];
+
+export interface Config {
+  aggregationInterval: number;
+  cooldown: number;
+}

@@ -1,4 +1,4 @@
-import { getInputCommanddown } from '../../constants';
+import { config } from '../config';
 
 import type {
   AuthMessage,
@@ -12,7 +12,6 @@ export class WebSocketHandlers {
   private connectedUsers = new Set<any>();
   private authenticatedUsers = new Set<any>();
   private userLastInputTime = new Map<string, number>();
-  private aggregationInterval: number;
 
   handleMessage(ws: any, message: string): void {
     try {
@@ -59,7 +58,7 @@ export class WebSocketHandlers {
   }
 
   private handleAuthMessage(ws: any, clientMessage: AuthMessage): void {
-    const { secretKey, aggregationInterval } = clientMessage.data;
+    const { secretKey } = clientMessage.data;
     const expectedSecretKey = process.env.WEBSOCKET_SECRET_KEY;
 
     if (!expectedSecretKey) {
@@ -74,17 +73,11 @@ export class WebSocketHandlers {
     if (secretKey === expectedSecretKey) {
       this.authenticatedUsers.add(ws);
 
-      // aggregationInterval will be sent by the CLI
-      if (aggregationInterval && typeof aggregationInterval === 'number') {
-        this.aggregationInterval = aggregationInterval;
-        console.log(`Aggregation interval set to: ${aggregationInterval}ms`);
-      }
-
       this.sendMessage(ws, {
         type: 'auth_status',
         data: {
           authenticated: true,
-          aggregationInterval: this.aggregationInterval,
+          config: config.getAll(),
         },
       });
       console.log('User authenticated successfully');
@@ -115,7 +108,7 @@ export class WebSocketHandlers {
     const lastInputTime = this.userLastInputTime.get(username) || 0;
 
     // Check rate limiting
-    if (currentTime - lastInputTime < getInputCommanddown()) {
+    if (currentTime - lastInputTime < config.get('cooldown')) {
       console.log(`Input rejected: User ${username} rate limited`);
       return;
     }
@@ -135,7 +128,7 @@ export class WebSocketHandlers {
 
     this.broadcastMessage(serverInputMessage);
     console.log(
-      `timestamp: ${currentTime}, user: ${username}, input: ${inputMessageData.input}`
+      `timestamp: ${currentTime}, user: ${username}, input: ${input}`
     );
   }
 
