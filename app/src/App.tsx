@@ -1,23 +1,33 @@
 import './style.css';
 
-import { BrowserRouter, Routes, Route } from 'react-router';
+import { BrowserRouter, Route, Routes } from 'react-router';
 
-import { AppPageLayout } from './components/AppPageLayout';
-
-import { Home } from './containers/Home';
 import { Admin } from './containers/Admin';
+import { Home } from './containers/Home';
+import { Login } from './containers/Login';
+import { AuthProvider } from './contexts/AuthContext';
+import { WebSocketProvider } from './contexts/WebSocketContext';
+import { AuthenticatedUserRouteWrapper } from './routes/AuthenticatedUserRouteWrapper';
 
 function App() {
   return (
     // Must mach the `base` in `vite.config.ts`
-    <BrowserRouter basename="/CrowdPad">
-      <Routes>
-        <Route path="/" element={<AppPageLayout />}>
-          <Route index={true} element={<Home />} />
-          <Route path="admin" element={<Admin />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <WebSocketProvider>
+      <AuthProvider>
+        <BrowserRouter basename="/CrowdPad">
+          <Routes>
+            <Route path="/" element={<AuthenticatedUserRouteWrapper />}>
+              <Route index={true} path="/" element={<Home />} />
+            </Route>
+
+            {/* TODO: wrapper for admin routes */}
+            <Route path="/admin" element={<Admin />} />
+
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </WebSocketProvider>
   );
 }
 

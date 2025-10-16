@@ -1,45 +1,83 @@
-import React, { createContext, useContext, useState } from 'react';
-import { AuthStatus } from '../types';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
+
 import { getCookie, setCookie } from '../utils/cookies';
-import { useWebSocketContext } from './WebSocketContext';
+
+import { AUTH_COOKIE } from '../constants/cookies';
+import { useWebSocket } from './WebSocketContext';
 
 interface AuthContextType {
-  username: string;
+  authData:
+    | {
+        username: string;
+        secretKey: string;
+      }
+    | undefined;
   isAuthenticated: boolean;
-  login: (username: string, secretKey: string) => void;
+  authenticate: (username: string, secretKey: string) => void;
   logout: () => void;
-  authStatus: AuthStatus;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [username, setUsername] = useState('');
-  const [secretKey, setSecretKey] = useState('');
-  const [authStatus, setAuthStatus] = useState<AuthStatus>('not_authenticated');
-  const { authenticate } = useWebSocketContext();
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { authStatus, send } = useWebSocket();
+  const [authData, setAuthData] =
+    useState<AuthContextType['authData']>(undefined);
 
-  const login = (username: string, secretKey: string) => {
-    const authData = JSON.stringify({ username, secretKey });
-    setCookie('crowdpad_auth', authData, 7);
-    setUsername(username);
-    setSecretKey(secretKey);
-    authenticate(secretKey);
-  };
+  const authenticate = useCallback(
+    (username: string, secretKey: string) => {
+      setAuthData({ username, secretKey });
+      send({ type: 'auth', data: { username, secretKey } });
+    },
+    [send]
+  );
+
+  // Try to authenticate based on existing cookie on first mount
+  useEffect(() => {
+    const authCookie = getCookie(AUTH_COOKIE);
+    if (authCookie) {
+      try {
+        const { username, secretKey } = JSON.parse(authCookie);
+        if (username && secretKey) {
+          authenticate(username, secretKey);
+        }
+      } catch (e) {
+        // Cookie is malformed, clear it
+        // setCookie(AUTH_COOKIE, '', -1);
+      }
+    }
+  }, [authenticate]);
+
+  // Listen to authentication messages and update cookie accordingly
+  useEffect(() => {
+    console.log(authStatus);
+    if (authStatus === 'authenticated') {
+      setCookie(AUTH_COOKIE, JSON.stringify(authData), 7);
+    } else {
+      // The backend will invalidate the session, but we also clear the cookie here
+      // for good measure, in case of auth failure.
+      // setCookie(AUTH_COOKIE, '', -1);
+    }
+  }, [authStatus, authData]);
 
   const logout = () => {
-    setCookie('crowdpad_auth', '', -1);
-    setUsername('');
-    setSecretKey('');
-    setAuthStatus('not_authenticated');
+    setCookie(AUTH_COOKIE, '', -1);
+    setAuthData(undefined);
   };
 
   const value = {
-    username,
+    authData,
     isAuthenticated: authStatus === 'authenticated',
-    login,
+    authenticate,
     logout,
-    authStatus,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

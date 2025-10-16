@@ -1,23 +1,15 @@
 import { useState } from 'react';
 
-import { Controls } from '../components/Controls';
 import { Chat } from '../components/Chat';
-
-import { useWebSocket } from '../hooks/useWebSocket';
+import { Controls } from '../components/Controls';
+import { useWebSocket } from '../contexts/WebSocketContext';
 
 export const Home = () => {
-  const [username, setUsername] = useState('');
   const [lastInputTime, setLastInputTime] = useState(0);
   const { chatMessages, onlineCount, config, authStatus, send } =
     useWebSocket();
-  const { cooldown, aggregationInterval } = config;
 
-  const handleAuthenticate = (secretKey: string) => {
-    send({
-      type: 'auth',
-      data: { secretKey },
-    });
-  };
+  const { cooldown, aggregationInterval } = config;
 
   const handleGameInput = (input: string) => {
     if (authStatus !== 'authenticated') {
