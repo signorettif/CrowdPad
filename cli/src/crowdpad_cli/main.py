@@ -66,7 +66,6 @@ class InputAggregator:
                 'timestamp': normalize_datetime(datetime.now()),
             },
         }
-        print(move_executed_message)
         try:
             await self.websocket.send(json.dumps(move_executed_message))
             print(f'Sent move_executed message: {chosen_command}')
@@ -79,7 +78,6 @@ class InputAggregator:
             # Pause to prevent a busy-wait loop and yield control to the
             # asyncio event loop, allowing other tasks to run. This polling
             # interval determines how frequently the loop checks for new inputs.
-            # Should align with the provided aggregation interval
             await asyncio.sleep(self.aggregation_interval / 1000)
 
             if not self.inputs:
@@ -125,7 +123,6 @@ class InputAggregator:
                 print(f'Picked: {most_popular_command}')
                 print('----------------------')
 
-                # Execute command
                 self.device.press_button(most_popular_command)
                 await self.send_move_executed_message(
                     most_popular_command,
@@ -168,9 +165,6 @@ async def listen_websocket(
             await websocket.send(json.dumps(auth_message))
             print('Sent authentication request')
 
-            # Start aggregation task
-            aggregation_task = asyncio.create_task(aggregator.process_inputs())
-
             try:
                 # Listen for messages
                 async for message in websocket:
@@ -187,12 +181,15 @@ async def listen_websocket(
                                 config = data.get('data', {}).get('config')
                                 if config:
                                     aggregator.update_config(config)
+                                # Start aggregation task
+                                aggregation_task = asyncio.create_task(
+                                    aggregator.process_inputs()
+                                )
                             else:
                                 print('Authentication failed')
                                 break
 
                         elif msg_type == 'input':
-                            # Receive input from server
                             input_data = data.get('data', {})
                             username = input_data.get('username')
                             input_command = input_data.get('input')
@@ -241,9 +238,6 @@ def listen(stubcontroller):
     """Listen for inputs from the WebSocket server."""
     try:
         controller = CrowdPadController(stub_controller=stubcontroller)
-        controller = CrowdPadController()
-        print('GBA joystick created. Waiting for inputs...')
-
         asyncio.run(listen_websocket(controller))
     except KeyboardInterrupt:
         print('\nShutting down...')
