@@ -29,6 +29,7 @@ export const UpdateConfigForm = ({ initialConfig }: UpdateConfigFormProps) => {
 
     const formData = new FormData(evt.currentTarget);
     const newConfig: Partial<Config> = {};
+    const adminKey = String(formData.get('adminKey') || '');
 
     for (const key in initialConfig) {
       if (Object.prototype.hasOwnProperty.call(initialConfig, key)) {
@@ -40,7 +41,7 @@ export const UpdateConfigForm = ({ initialConfig }: UpdateConfigFormProps) => {
     }
 
     try {
-      await updateConfig(newConfig as Config);
+      await updateConfig(newConfig as Config, adminKey);
       setUpdateConfigStatus('updated');
     } catch {
       setUpdateConfigStatus('update_error');
@@ -53,6 +54,20 @@ export const UpdateConfigForm = ({ initialConfig }: UpdateConfigFormProps) => {
       onSubmit={handleUpdateConfig}
       aria-disabled={isUpdateConfigDisabled}
     >
+      <div className="mb-4" key="adminKey">
+        <label className="mb-2 block text-sm font-bold text-gray-700">
+          Admin Key
+        </label>
+        <input
+          type="password"
+          name="adminKey"
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          placeholder="Enter admin key"
+          disabled={isUpdateConfigDisabled}
+          aria-disabled={isUpdateConfigDisabled}
+        />
+      </div>
+
       {Object.entries(initialConfig).map(([configKey, configValue]) => {
         return (
           <div className="mb-4" key={configKey}>
