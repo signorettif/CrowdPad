@@ -9,7 +9,6 @@ export class WebSocketService {
       'ws://localhost:3000/socket'
   ) {
     this.ws = new WebSocket(webSocketUrl);
-    console.log(this.ws);
   }
 
   onOpen(callback: () => void) {

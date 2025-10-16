@@ -2,12 +2,14 @@ import { useState } from 'react';
 
 import { Chat } from '../components/Chat';
 import { Controls } from '../components/Controls';
+import { useAuthContext } from '../contexts/AuthContext';
 import { useWebSocket } from '../contexts/WebSocketContext';
 
 export const Home = () => {
   const [lastInputTime, setLastInputTime] = useState(0);
   const { chatMessages, onlineCount, config, authStatus, send } =
     useWebSocket();
+  const { authData } = useAuthContext();
 
   const { cooldown, aggregationInterval } = config;
 
@@ -17,7 +19,7 @@ export const Home = () => {
       return;
     }
 
-    if (!username.trim()) {
+    if (!authData?.username.trim()) {
       alert('Please enter a username.');
       return;
     }
@@ -36,7 +38,7 @@ export const Home = () => {
     setLastInputTime(currentTime);
     send({
       type: 'input',
-      data: { username: username.trim(), input },
+      data: { username: authData.username.trim(), input },
     });
   };
 

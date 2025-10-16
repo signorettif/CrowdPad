@@ -57,7 +57,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Listen to authentication messages and update cookie accordingly
   useEffect(() => {
-    console.log(authStatus);
     if (authStatus === 'authenticated') {
       setCookie(AUTH_COOKIE, JSON.stringify(authData), 7);
     } else {
