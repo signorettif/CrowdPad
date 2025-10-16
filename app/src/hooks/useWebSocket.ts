@@ -38,7 +38,11 @@ class WebSocketService {
   }
 }
 
-export const useWebSocket = () => {
+interface UseWebSocketProps {
+  onAuthStatusChange: (authStatus: AuthStatus) => void;
+}
+
+export const useWebSocket = ({ onAuthStatusChange }: UseWebSocketProps) => {
   const [chatMessages, setChatMessages] = useState<GameInput[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
   const [authStatus, setAuthStatus] = useState<AuthStatus>('not_authenticated');
@@ -63,7 +67,7 @@ export const useWebSocket = () => {
             setAuthStatus('authenticated');
             if (message.data.config) setConfig(message.data.config);
           } else {
-            setAuthStatus('authentication_error');
+            onAuthStatusChange('authentication_error');
           }
           break;
         case 'input':
@@ -96,10 +100,14 @@ export const useWebSocket = () => {
     return () => {
       ws.close();
     };
-  }, []);
+  }, [onAuthStatusChange]);
 
   const send = (data: object) => {
     wsServiceRef.current?.send(data);
+  };
+
+  const authenticate = (secretKey: string) => {
+    send({ type: 'auth', data: { secretKey } });
   };
 
   return {
@@ -108,5 +116,6 @@ export const useWebSocket = () => {
     authStatus,
     config,
     send,
+    authenticate,
   };
 };
