@@ -76,7 +76,6 @@ export const useWebSocket = () => {
           setOnlineCount(message.data.count);
           break;
         case 'move_executed': {
-          console.log(message.data);
           const { command, votes, timestamp } = message.data;
           setChatMessages((prev) => [
             ...prev,
@@ -88,6 +87,9 @@ export const useWebSocket = () => {
           ]);
           break;
         }
+        case 'config_update':
+          setConfig(message.data.config);
+          break;
       }
     });
 
