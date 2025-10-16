@@ -9,7 +9,6 @@ export interface AuthMessage {
   type: 'auth';
   data: {
     secretKey: string;
-    aggregationInterval?: number;
   };
 }
 

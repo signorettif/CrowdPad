@@ -26,15 +26,21 @@ class InputAggregator:
     def __init__(
         self,
         device: CrowdPadController,
-        aggregation_interval: int,
         websocket: websockets.ClientConnection,
     ):
         self.device = device
-        self.aggregation_interval = aggregation_interval
+        self.aggregation_interval = os.environ.get('AGGREGATION_INTERVAL_MS', 1000)
         self.inputs = deque()
         self.running = True
         self.window_start = None
         self.websocket = websocket
+
+    def update_config(self, new_config: dict):
+        """Update the aggregator's configuration."""
+        new_interval = new_config.get('aggregationInterval')
+        if new_interval and isinstance(new_interval, int):
+            self.aggregation_interval = new_interval
+            print(f'Updated aggregation interval to: {self.aggregation_interval}ms')
 
     def add_input(self, username: str, input_command: str, timestamp: int):
         """Add an input to the buffer."""
@@ -136,7 +142,7 @@ class InputAggregator:
 
 
 async def listen_websocket(
-    device: CrowdPadController, aggregation_interval: int
+    device: CrowdPadController,
 ) -> None:
     """Connect to WebSocket server and listen for input events."""
     if not SERVER_SECRET:
@@ -144,21 +150,19 @@ async def listen_websocket(
         return
 
     print(f'Connecting to WebSocket server at {SERVER_URI}...')
-    print(f'Aggregation interval: {aggregation_interval}ms')
 
     try:
         async with websockets.connect(SERVER_URI) as websocket:
             print(f'Connected to WebSocket server at {SERVER_URI}')
 
             # Create aggregator with websocket connection
-            aggregator = InputAggregator(device, aggregation_interval, websocket)
+            aggregator = InputAggregator(device, websocket)
 
             # Send authentication message
             auth_message = {
                 'type': 'auth',
                 'data': {
                     'secretKey': SERVER_SECRET,
-                    'aggregationInterval': aggregation_interval,
                 },
             }
             await websocket.send(json.dumps(auth_message))
@@ -180,6 +184,9 @@ async def listen_websocket(
                             )
                             if authenticated:
                                 print('Successfully authenticated to WebSocket server')
+                                config = data.get('data', {}).get('config')
+                                if config:
+                                    aggregator.update_config(config)
                             else:
                                 print('Authentication failed')
                                 break
@@ -220,27 +227,19 @@ def cli():
 
 @cli.command()
 @click.option(
-    '--aggregationInterval',
-    default=os.environ.get('AGGREGATION_INTERVAL_MS', 1000),
-    type=int,
-    help='The interval in milliseconds to aggregate commands.',
-)
-@click.option(
     '--stubController',
     is_flag=True,
     default=False,
     help='Use a stubbed implementation to simulate inputs',
 )
-def listen(aggregationinterval, stubcontroller):
+def listen(stubcontroller):
     """Listen for inputs from the WebSocket server."""
     try:
         controller = CrowdPadController(stub_controller=stubcontroller)
         controller = CrowdPadController()
         print('GBA joystick created. Waiting for inputs...')
 
-        asyncio.run(
-            listen_websocket(controller, aggregation_interval=aggregationinterval)
-        )
+        asyncio.run(listen_websocket(controller))
     except KeyboardInterrupt:
         print('\nShutting down...')
     except Exception as e:

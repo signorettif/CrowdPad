@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getSocketUri } from '../utils/socket';
 
-import type { GameInput, AuthStatus } from '../types';
+import type { GameInput, AuthStatus, Config } from '../types';
 import type { ServerMessage } from '../types/serverMessages';
 
 // --- WebSocket Service (simplified from server/src/utils/websockets/service.ts) ---
@@ -42,9 +42,10 @@ export const useWebSocket = () => {
   const [chatMessages, setChatMessages] = useState<GameInput[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
   const [authStatus, setAuthStatus] = useState<AuthStatus>('not_authenticated');
-  const [aggregationInterval, setAggregationInterval] = useState<
-    number | undefined
-  >();
+  const [config, setConfig] = useState<Config>({
+    aggregationInterval: 1000,
+    cooldown: 100,
+  });
   const wsServiceRef = useRef<WebSocketService | null>(null);
 
   useEffect(() => {
@@ -60,8 +61,7 @@ export const useWebSocket = () => {
         case 'auth_status':
           if (message.data.authenticated) {
             setAuthStatus('authenticated');
-            if (message.data.aggregationInterval)
-              setAggregationInterval(message.data.aggregationInterval);
+            if (message.data.config) setConfig(message.data.config);
           } else {
             setAuthStatus('authentication_error');
           }
@@ -104,7 +104,7 @@ export const useWebSocket = () => {
     chatMessages,
     onlineCount,
     authStatus,
-    aggregationInterval,
+    config,
     send,
   };
 };

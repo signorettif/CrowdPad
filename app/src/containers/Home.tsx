@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import { Controls } from '../components/Controls';
 import { Chat } from '../components/Chat';
@@ -8,30 +8,9 @@ import { useWebSocket } from '../hooks/useWebSocket';
 export const Home = () => {
   const [username, setUsername] = useState('');
   const [lastInputTime, setLastInputTime] = useState(0);
-  const [cooldown, setCooldown] = useState(1000);
-  const { chatMessages, onlineCount, aggregationInterval, authStatus, send } =
+  const { chatMessages, onlineCount, config, authStatus, send } =
     useWebSocket();
-
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SERVER_URL}/config`
-        );
-        const data = await response.json();
-        const cooldownValue = data.find(
-          (item: any) => item.key === 'cooldown'
-        )?.value;
-        if (cooldownValue) {
-          setCooldown(parseInt(cooldownValue, 10));
-        }
-      } catch (error) {
-        console.error('Error fetching config:', error);
-      }
-    };
-
-    fetchConfig();
-  }, []);
+  const { cooldown, aggregationInterval } = config;
 
   const handleAuthenticate = (secretKey: string) => {
     send({
