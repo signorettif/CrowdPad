@@ -23,9 +23,8 @@ const server = Bun.serve({
 
     if (req.method === 'OPTIONS') {
       const headers = {
-        'Access-Control-Allow-Origin': (
-          process.env.CORS_ALLOW_ORIGINS || ''
-        ).split(','),
+        'Access-Control-Allow-Origin':
+          process.env.CORS_ALLOW_ORIGINS?.split(',')?.[0] || '',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       };

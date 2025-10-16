@@ -2,6 +2,9 @@ import { withAdminAuth } from '../middleware/auth';
 import { withCors } from '../middleware/cors';
 import { config, type ConfigKey } from '../utils/config';
 
+import type { Server } from 'bun';
+import { WebSocketHandlers } from '../utils/websockets/handlers';
+
 export const configRoutes = {
   '/api/v1/config': {
     GET: withCors(() => {
@@ -13,7 +16,7 @@ export const configRoutes = {
       }
     }),
     POST: withCors(
-      withAdminAuth(async (req: Request) => {
+      withAdminAuth(async (req: Request, server: Server) => {
         try {
           const payload = await req.json();
           if (
@@ -47,6 +50,15 @@ export const configRoutes = {
             config.update(key as ConfigKey, value);
           }
 
+          server.publish(
+            WebSocketHandlers.INTERNAL_WEBSOCKET_TOPIC,
+            JSON.stringify({
+              type: 'config_update',
+              data: {
+                config: payload,
+              },
+            })
+          );
           return Response.json(payload);
         } catch (error) {
           // Bun's req.json() throws a generic error on invalid JSON.
@@ -58,28 +70,5 @@ export const configRoutes = {
         }
       })
     ),
-  },
-  '/api/v1/config/:key': {
-    GET: withAdminAuth(async (req: Request) => {
-      const url = new URL(req.url);
-      const key = url.pathname.split('/').pop();
-
-      if (!config.getAllKeys().includes(key)) {
-        return new Response(`Configuration key ${key} does not exist`, {
-          status: 404,
-        });
-      }
-
-      try {
-        const { value } = await req.json();
-        config.update(key as ConfigKey, value);
-        return new Response(JSON.stringify({ key, value }), {
-          headers: { 'Content-Type': 'application/json' },
-        });
-      } catch (error) {
-        console.error('Error writing config:', error);
-        return new Response('Internal Server Error', { status: 500 });
-      }
-    }),
   },
 };

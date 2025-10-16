@@ -1,20 +1,20 @@
 import { WebSocketHandlers } from './utils/websockets/handlers';
 
-import type { ServerWebSocket } from 'bun';
+import type { WebSocketHandler } from 'bun';
 
 const wsHandlers = new WebSocketHandlers();
 
-export const webSocketHandler = {
-  message(ws: ServerWebSocket, message: string | Buffer) {
+export const webSocketHandler: WebSocketHandler = {
+  message(ws, message) {
     wsHandlers.handleMessage(ws, message.toString());
   },
-  open(ws: ServerWebSocket) {
+  open(ws) {
     wsHandlers.handleOpen(ws);
   },
-  close(ws: ServerWebSocket, _code: number, _message: string) {
+  close(ws) {
     wsHandlers.handleClose(ws);
   },
-  drain(_ws: ServerWebSocket) {
+  drain() {
     // handle backpressure
   },
 };

@@ -2,12 +2,14 @@ import { config } from '../config';
 import type {
   AuthMessage,
   ClientMessage,
+  ConfigUpdateMessage,
   InputMessage,
   MoveExecutedClientMessage,
 } from '../../types/clientMessages';
 import type { ServerMessage } from '../../types/serverMessages';
 
 export class WebSocketHandlers {
+  static INTERNAL_WEBSOCKET_TOPIC = 'config-updates';
   private connectedUsers = new Set<any>();
   private authenticatedUsers = new Set<any>();
   private userLastInputTime = new Map<string, number>();
@@ -38,6 +40,7 @@ export class WebSocketHandlers {
   }
 
   handleOpen(ws: any): void {
+    ws.subscribe(WebSocketHandlers.INTERNAL_WEBSOCKET_TOPIC); // Subscribe to the topic, needed for internal updates from REST endpoints
     this.connectedUsers.add(ws);
 
     // Send current user count to all clients
@@ -56,8 +59,14 @@ export class WebSocketHandlers {
     console.log(`Connection closed. Total users: ${this.connectedUsers.size}`);
   }
 
+  broadcastMessage(message: ServerMessage): void {
+    this.connectedUsers.forEach((client) => {
+      this.sendMessage(client, message);
+    });
+  }
+
   private handleAuthMessage(ws: any, clientMessage: AuthMessage): void {
-    const { secretKey, aggregationInterval } = clientMessage.data;
+    const { secretKey } = clientMessage.data;
     const expectedSecretKey = process.env.WEBSOCKET_SECRET_KEY;
 
     if (!expectedSecretKey) {
@@ -71,12 +80,6 @@ export class WebSocketHandlers {
 
     if (secretKey === expectedSecretKey) {
       this.authenticatedUsers.add(ws);
-
-      // aggregationInterval will be sent by the CLI
-      if (aggregationInterval && typeof aggregationInterval === 'number') {
-        config.update('aggregationInterval', aggregationInterval);
-        console.log(`Aggregation interval set to: ${aggregationInterval}ms`);
-      }
 
       this.sendMessage(ws, {
         type: 'auth_status',
@@ -167,12 +170,6 @@ export class WebSocketHandlers {
       data: { count: this.connectedUsers.size },
     };
     this.broadcastMessage(userCountMessage);
-  }
-
-  private broadcastMessage(message: ServerMessage): void {
-    this.connectedUsers.forEach((client) => {
-      this.sendMessage(client, message);
-    });
   }
 
   private sendMessage(ws: any, message: ServerMessage): void {

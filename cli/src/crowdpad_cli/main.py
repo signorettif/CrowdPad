@@ -36,6 +36,13 @@ class InputAggregator:
         self.window_start = None
         self.websocket = websocket
 
+    def update_config(self, new_config: dict):
+        '''Update the aggregator's configuration.'''
+        new_interval = new_config.get('aggregationInterval')
+        if new_interval and isinstance(new_interval, int):
+            self.aggregation_interval = new_interval
+            print(f'Updated aggregation interval to: {self.aggregation_interval}ms')
+
     def add_input(self, username: str, input_command: str, timestamp: int):
         """Add an input to the buffer."""
         self.inputs.append(
@@ -157,7 +164,6 @@ async def listen_websocket(
                 'type': 'auth',
                 'data': {
                     'secretKey': SERVER_SECRET,
-                    'aggregationInterval': aggregation_interval,
                 },
             }
             await websocket.send(json.dumps(auth_message))
@@ -179,9 +185,17 @@ async def listen_websocket(
                             )
                             if authenticated:
                                 print('Successfully authenticated to WebSocket server')
+                                config = data.get('data', {}).get('config')
+                                if config:
+                                    aggregator.update_config(config)
                             else:
                                 print('Authentication failed')
                                 break
+
+                        elif msg_type == 'config_update':
+                            config = data.get('data', {}).get('config')
+                            if config:
+                                aggregator.update_config(config)
 
                         elif msg_type == 'input':
                             # Receive input from server

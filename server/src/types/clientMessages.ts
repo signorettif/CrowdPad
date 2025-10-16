@@ -1,3 +1,5 @@
+import { Config } from './shared';
+
 export interface JoinMessage {
   type: 'join';
   data: {
@@ -9,7 +11,6 @@ export interface AuthMessage {
   type: 'auth';
   data: {
     secretKey: string;
-    aggregationInterval?: number;
   };
 }
 

@@ -1,13 +1,10 @@
-import type { GameInput } from './shared';
+import type { GameInput, Config } from './shared';
 
 export interface AuthStatusMessage {
   type: 'auth_status';
   data: {
     authenticated: boolean;
-    config?: {
-      aggregationInterval: number;
-      cooldown: number;
-    };
+    config?: Config;
   };
 }
 
@@ -41,9 +38,17 @@ export interface MoveExecutedMessage {
   };
 }
 
+export interface ConfigUpdateMessage {
+  type: 'config_update';
+  data: {
+    config: Config;
+  };
+}
+
 export type ServerMessage =
   | AuthStatusMessage
   | InputMessage
   | MessagesMessage
   | UserCountMessage
-  | MoveExecutedMessage;
+  | MoveExecutedMessage
+  | ConfigUpdateMessage;
