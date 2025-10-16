@@ -1,14 +1,13 @@
 import React, {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   useCallback,
+  useContext,
+  useEffect,
+  useState,
 } from 'react';
 
-import { getCookie, setCookie } from '../utils/cookies';
-
 import { AUTH_COOKIE } from '../constants/cookies';
+import { getCookie, setCookie } from '../utils/cookies';
 import { useWebSocket } from './WebSocketContext';
 
 interface AuthContextType {
