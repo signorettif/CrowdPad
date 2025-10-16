@@ -13,6 +13,8 @@ export const Home = () => {
 
   const { cooldown, aggregationInterval } = config;
 
+  console.log('here');
+
   const handleGameInput = (input: string) => {
     if (authStatus !== 'authenticated') {
       alert('Please authenticate first');
