@@ -32,10 +32,12 @@ export const UpdateConfigForm = ({ initialConfig }: UpdateConfigFormProps) => {
     const adminKey = String(formData.get('adminKey') || '');
 
     for (const key in initialConfig) {
-      if (Object.prototype.hasOwnProperty.call(initialConfig, key)) {
+      if (initialConfig.hasOwnProperty(key)) {
         const formValue = formData.get(key);
-        if (typeof formValue === 'number') {
-          newConfig[key as keyof Config] = formValue;
+        const initialValue = initialConfig[key as keyof Config];
+
+        if (typeof initialValue === 'number') {
+          newConfig[key as keyof Config] = Number(formValue);
         }
       }
     }

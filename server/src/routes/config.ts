@@ -55,7 +55,7 @@ export const configRoutes = {
             JSON.stringify({
               type: 'config_update',
               data: {
-                config: payload,
+                config: config.getAll(),
               },
             })
           );
