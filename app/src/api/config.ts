@@ -16,12 +16,13 @@ export const getConfig = async (): Promise<GetConfigResponse> => {
 type UpdateConfigResponse = Config;
 
 export const updateConfig = async (
-  newConfig: Config
+  newConfig: Config,
+  adminToken: string
 ): Promise<UpdateConfigResponse> => {
   const res = await fetch(`${API_BASE_URL}/config`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${import.meta.env.VITE_SERVER_ADMIN_KEY}`,
+      Authorization: `Bearer ${adminToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(newConfig),
