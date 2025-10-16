@@ -1,5 +1,4 @@
 import { config } from '../config';
-
 import type {
   AuthMessage,
   ClientMessage,
@@ -9,6 +8,7 @@ import type {
 import type { ServerMessage } from '../../types/serverMessages';
 
 export class WebSocketHandlers {
+  static INTERNAL_WEBSOCKET_TOPIC = 'config-updates';
   private connectedUsers = new Set<any>();
   private authenticatedUsers = new Set<any>();
   private userLastInputTime = new Map<string, number>();
@@ -39,6 +39,7 @@ export class WebSocketHandlers {
   }
 
   handleOpen(ws: any): void {
+    ws.subscribe(WebSocketHandlers.INTERNAL_WEBSOCKET_TOPIC); // Subscribe to the topic, needed for internal updates from REST endpoints
     this.connectedUsers.add(ws);
 
     // Send current user count to all clients

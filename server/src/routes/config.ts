@@ -50,6 +50,15 @@ export const configRoutes = {
             config.update(key as ConfigKey, value);
           }
 
+          server.publish(
+            WebSocketHandlers.INTERNAL_WEBSOCKET_TOPIC,
+            JSON.stringify({
+              type: 'config_update',
+              data: {
+                config: config.getAll(),
+              },
+            })
+          );
           return Response.json(payload);
         } catch (error) {
           // Bun's req.json() throws a generic error on invalid JSON.

@@ -201,6 +201,11 @@ async def listen_websocket(
                             if username and input_command and timestamp:
                                 aggregator.add_input(username, input_command, timestamp)
 
+                        elif msg_type == 'config_update':
+                            config = data.get('data', {}).get('config')
+                            if config:
+                                aggregator.update_config(config)
+
                     except json.JSONDecodeError as e:
                         print(f'Failed to parse message: {e}')
 

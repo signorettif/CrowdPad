@@ -38,9 +38,17 @@ export interface MoveExecutedMessage {
   };
 }
 
+export interface ConfigUpdateMessage {
+  type: 'config_update';
+  data: {
+    config: Config;
+  };
+}
+
 export type ServerMessage =
   | AuthStatusMessage
   | InputMessage
   | MessagesMessage
   | UserCountMessage
-  | MoveExecutedMessage;
+  | MoveExecutedMessage
+  | ConfigUpdateMessage;
