@@ -49,24 +49,20 @@ export const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="container mx-auto p-4">
-        <div className="flex flex-col gap-6 lg:flex-row">
-          <Controls
-            onAuthenticate={handleAuthenticate}
-            authStatus={authStatus}
-            username={username}
-            setUsername={setUsername}
-            onGameInput={handleGameInput}
-            cooldown={cooldown}
-          />
-          <Chat
-            messages={chatMessages}
-            onlineCount={onlineCount}
-            aggregationInterval={aggregationInterval}
-          />
-        </div>
-      </div>
-    </div>
+    <main className="container mx-auto flex flex-col gap-6 p-6 lg:flex-row">
+      <Controls
+        onAuthenticate={handleAuthenticate}
+        authStatus={authStatus}
+        username={username}
+        setUsername={setUsername}
+        onGameInput={handleGameInput}
+        cooldown={cooldown}
+      />
+      <Chat
+        messages={chatMessages}
+        onlineCount={onlineCount}
+        aggregationInterval={aggregationInterval}
+      />
+    </main>
   );
 };
