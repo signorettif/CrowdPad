@@ -2,13 +2,13 @@ import './style.css';
 
 import { BrowserRouter, Route, Routes } from 'react-router';
 
+import { AppPageLayout } from './components/AppPageLayout';
 import { Admin } from './containers/Admin';
 import { Home } from './containers/Home';
 import { Login } from './containers/Login';
 import { AuthProvider } from './contexts/AuthContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
 import { AuthenticatedUserRouteWrapper } from './routes/AuthenticatedUserRouteWrapper';
-import { AppPageLayout } from './components/AppPageLayout';
 
 function App() {
   return (
