@@ -8,6 +8,7 @@ import { Login } from './containers/Login';
 import { AuthProvider } from './contexts/AuthContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
 import { AuthenticatedUserRouteWrapper } from './routes/AuthenticatedUserRouteWrapper';
+import { AppPageLayout } from './components/AppPageLayout';
 
 function App() {
   return (
@@ -16,12 +17,14 @@ function App() {
       <AuthProvider>
         <BrowserRouter basename="/CrowdPad">
           <Routes>
-            <Route path="/" element={<AuthenticatedUserRouteWrapper />}>
-              <Route index={true} path="/" element={<Home />} />
-            </Route>
+            <Route path="/" element={<AppPageLayout />}>
+              <Route path="/" element={<AuthenticatedUserRouteWrapper />}>
+                <Route index={true} element={<Home />} />
+              </Route>
 
-            {/* TODO: wrapper for admin routes */}
-            <Route path="/admin" element={<Admin />} />
+              {/* TODO: wrapper for admin routes */}
+              <Route path="admin" element={<Admin />} />
+            </Route>
 
             <Route path="/login" element={<Login />} />
           </Routes>
