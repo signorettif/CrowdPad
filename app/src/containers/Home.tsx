@@ -46,14 +46,7 @@ export const Home = () => {
 
   return (
     <main className="container mx-auto flex flex-col gap-6 p-6 lg:flex-row">
-      <Controls
-        onAuthenticate={handleAuthenticate}
-        authStatus={authStatus}
-        username={username}
-        setUsername={setUsername}
-        onGameInput={handleGameInput}
-        cooldown={cooldown}
-      />
+      <Controls onGameInput={handleGameInput} cooldown={cooldown} />
       <Chat
         messages={chatMessages}
         onlineCount={onlineCount}
