@@ -80,11 +80,11 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
           });
           break;
         }
-        // case 'config_update':
-        //   if (message.data && message.data.config) {
-        //     dispatch({ type: 'SET_CONFIG', payload: message.data.config });
-        //   }
-        //   break;
+        case 'config_update':
+          if (message.data && message.data.config) {
+            dispatch({ type: 'SET_CONFIG', payload: message.data.config });
+          }
+          break;
       }
     });
 

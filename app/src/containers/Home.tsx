@@ -11,9 +11,11 @@ export const Home = () => {
     useWebSocket();
   const { authData } = useAuthContext();
 
-  const { cooldown, aggregationInterval } = config;
+  if (!config) {
+    return <>Loading...</>;
+  }
 
-  console.log('here');
+  const { cooldown, aggregationInterval } = config;
 
   const handleGameInput = (input: string) => {
     if (authStatus !== 'authenticated') {
