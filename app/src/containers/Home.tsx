@@ -1,23 +1,19 @@
 import { useState } from 'react';
 
-import { Controls } from '../components/Controls';
 import { Chat } from '../components/Chat';
-
-import { useWebSocket } from '../hooks/useWebSocket';
+import { Controls } from '../components/Controls';
+import { useAuthContext } from '../contexts/AuthContext';
+import { useWebSocket } from '../contexts/WebSocketContext';
 
 export const Home = () => {
-  const [username, setUsername] = useState('');
   const [lastInputTime, setLastInputTime] = useState(0);
   const { chatMessages, onlineCount, config, authStatus, send } =
     useWebSocket();
+  const { authData } = useAuthContext();
+
   const { cooldown, aggregationInterval } = config;
 
-  const handleAuthenticate = (secretKey: string) => {
-    send({
-      type: 'auth',
-      data: { secretKey },
-    });
-  };
+  console.log('here');
 
   const handleGameInput = (input: string) => {
     if (authStatus !== 'authenticated') {
@@ -25,7 +21,7 @@ export const Home = () => {
       return;
     }
 
-    if (!username.trim()) {
+    if (!authData?.username.trim()) {
       alert('Please enter a username.');
       return;
     }
@@ -44,20 +40,13 @@ export const Home = () => {
     setLastInputTime(currentTime);
     send({
       type: 'input',
-      data: { username: username.trim(), input },
+      data: { username: authData.username.trim(), input },
     });
   };
 
   return (
     <main className="container mx-auto flex flex-col gap-6 p-6 lg:flex-row">
-      <Controls
-        onAuthenticate={handleAuthenticate}
-        authStatus={authStatus}
-        username={username}
-        setUsername={setUsername}
-        onGameInput={handleGameInput}
-        cooldown={cooldown}
-      />
+      <Controls onGameInput={handleGameInput} cooldown={cooldown} />
       <Chat
         messages={chatMessages}
         onlineCount={onlineCount}
