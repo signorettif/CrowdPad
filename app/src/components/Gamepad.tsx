@@ -5,7 +5,26 @@ interface GamepadProps {
 
 export const Gamepad = ({ onGameInput, disabled }: GamepadProps) => {
   return (
-    <div className="mx-auto max-w-md rounded-lg bg-purple-200 p-8">
+    <div className="mx-auto max-w-md rounded-lg bg-purple-200 p-8"
+      onKeyDown={(e) => {
+      if (e.code === "ArrowUp") {
+          onGameInput("up");
+      } else if (e.code === "ArrowDown") {
+          onGameInput("down");
+      } else if (e.code === "ArrowLeft") {
+          onGameInput("left");
+      } else if (e.code === "ArrowRight") {
+          onGameInput("right");
+      } else if (e.code === "KeyA") {
+          onGameInput("a");
+      } else if (e.code === "KeyB") {
+          onGameInput("b");
+      } else if (e.code === "Enter") {
+          onGameInput("start");
+      } else if (e.code === "Space") {
+          onGameInput("select");
+      }
+    }}>
       <div className="flex items-center justify-between">
         <div className="relative">
           <div className="grid h-24 w-24 grid-cols-3 gap-1">
@@ -48,6 +67,7 @@ export const Gamepad = ({ onGameInput, disabled }: GamepadProps) => {
             <div />
           </div>
         </div>
+<<<<<<< HEAD
 
         <div className="space-y-2">
           <button
@@ -89,4 +109,10 @@ export const Gamepad = ({ onGameInput, disabled }: GamepadProps) => {
       </div>
     </div>
   );
+||||||| parent of 1d651ef (Add keyboard shortcuts)
+    );
+};
+=======
+    );
+>>>>>>> 1d651ef (Add keyboard shortcuts)
 };
