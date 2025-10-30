@@ -67,7 +67,6 @@ export const Gamepad = ({ onGameInput, disabled }: GamepadProps) => {
             <div />
           </div>
         </div>
-<<<<<<< HEAD
 
         <div className="space-y-2">
           <button
@@ -109,10 +108,4 @@ export const Gamepad = ({ onGameInput, disabled }: GamepadProps) => {
       </div>
     </div>
   );
-||||||| parent of 1d651ef (Add keyboard shortcuts)
-    );
-};
-=======
-    );
->>>>>>> 1d651ef (Add keyboard shortcuts)
 };
