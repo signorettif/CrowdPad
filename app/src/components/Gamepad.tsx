@@ -5,26 +5,39 @@ interface GamepadProps {
 
 export const Gamepad = ({ onGameInput, disabled }: GamepadProps) => {
   return (
-    <div className="mx-auto max-w-md rounded-lg bg-purple-200 p-8"
+    <div
+      className="mx-auto max-w-md rounded-lg bg-purple-200 p-8 focus:outline-none focus:ring-2 focus:ring-purple-500"
+      tabIndex={0}
       onKeyDown={(e) => {
-      if (e.code === "ArrowUp") {
+        if (disabled) return;
+
+        if (e.code === "ArrowUp") {
+          e.preventDefault();
           onGameInput("up");
-      } else if (e.code === "ArrowDown") {
+        } else if (e.code === "ArrowDown") {
+          e.preventDefault();
           onGameInput("down");
-      } else if (e.code === "ArrowLeft") {
+        } else if (e.code === "ArrowLeft") {
+          e.preventDefault();
           onGameInput("left");
-      } else if (e.code === "ArrowRight") {
+        } else if (e.code === "ArrowRight") {
+          e.preventDefault();
           onGameInput("right");
-      } else if (e.code === "KeyA") {
+        } else if (e.code === "KeyA") {
+          e.preventDefault();
           onGameInput("a");
-      } else if (e.code === "KeyB") {
+        } else if (e.code === "KeyB") {
+          e.preventDefault();
           onGameInput("b");
-      } else if (e.code === "Enter") {
+        } else if (e.code === "Enter") {
+          e.preventDefault();
           onGameInput("start");
-      } else if (e.code === "Space") {
+        } else if (e.code === "Space") {
+          e.preventDefault();
           onGameInput("select");
-      }
-    }}>
+        }
+      }}
+    >
       <div className="flex items-center justify-between">
         <div className="relative">
           <div className="grid h-24 w-24 grid-cols-3 gap-1">
